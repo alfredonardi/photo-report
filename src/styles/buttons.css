@@ -1,0 +1,51 @@
+@layer components {
+  /* Base button styles */
+  .button-base {
+    @apply p-3 text-base border-none rounded cursor-pointer text-white w-full transition-all;
+  }
+
+  /* Import photo button */
+  .import-button-container {
+    @apply mb-5 text-center;
+  }
+
+  .import-button-container button {
+    @apply button-base bg-blue-500 px-6 py-3 text-base hover:bg-blue-600 active:bg-blue-700;
+  }
+
+  /* Action buttons container */
+  .action-buttons {
+    @apply flex flex-col gap-5 mt-5;
+  }
+
+  /* Export and Start buttons */
+  .export-button {
+    @apply button-base bg-green-600 hover:bg-green-700 active:bg-green-800;
+  }
+
+  .start-button {
+    @apply button-base bg-blue-500 hover:bg-blue-600 active:bg-blue-700;
+  }
+
+  /* Photo item buttons */
+  .photo-item-buttons {
+    @apply flex gap-2 mt-3;
+  }
+
+  .photo-item-buttons button {
+    @apply flex-1 p-2.5 text-sm border-none rounded cursor-pointer text-white transition-all;
+  }
+
+  /* Individual photo action buttons */
+  .photo-item-buttons button:nth-child(1) {
+    @apply bg-red-500 hover:bg-red-600 active:bg-red-700; /* Delete button */
+  }
+
+  .photo-item-buttons button:nth-child(2) {
+    @apply bg-green-600 hover:bg-green-700 active:bg-green-800; /* Download button */
+  }
+
+  .photo-item-buttons button:nth-child(3) {
+    @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-700; /* Rotate button */
+  }
+}

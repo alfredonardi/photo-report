@@ -1,0 +1,69 @@
+@layer components {
+  .photo-list {
+    @apply flex flex-col gap-5;
+  }
+
+  .photo-item-container {
+    @apply bg-white p-4 md:p-5 rounded-lg shadow-sm;
+  }
+
+  .photo-image-container {
+    @apply text-center;
+  }
+
+  .photo-item {
+    @apply max-w-full h-auto rounded-lg;
+  }
+
+  .photo-item-controls {
+    @apply mt-3;
+  }
+
+  .photo-description {
+    @apply w-full min-h-[80px] p-3 text-sm mt-5 resize-none border border-gray-300 rounded leading-[1.4];
+  }
+
+  .photo-description::placeholder {
+    @apply text-gray-500 text-sm leading-[1.4];
+  }
+
+  .rotation-indicator {
+    @apply text-center text-sm mt-2;
+  }
+
+  .position-selector {
+    @apply flex flex-col gap-2 mt-3;
+  }
+
+  .position-info {
+    @apply flex items-center gap-2 text-sm;
+  }
+
+  .position-label {
+    @apply font-medium;
+  }
+
+  .position-original {
+    @apply text-gray-500;
+  }
+
+  .position-select {
+    @apply p-2 text-sm border border-gray-300 rounded w-full;
+  }
+
+  .photo-item-buttons {
+    @apply flex gap-2 mt-3;
+  }
+
+  .photo-item-buttons button {
+    @apply flex-1 p-2.5 text-sm border-none rounded cursor-pointer text-white transition-all;
+  }
+
+  .photo-item-buttons button:nth-child(1) {
+    @apply bg-red-500 hover:bg-red-600 active:bg-red-700;
+  }
+
+  .photo-item-buttons button:nth-child(2) {
+    @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-700;
+  }
+}

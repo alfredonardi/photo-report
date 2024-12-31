@@ -1,0 +1,14 @@
+@layer components {
+  .bo-input-container {
+    @apply flex flex-col md:flex-row gap-3 mb-5 items-center;
+  }
+
+  .bo-input {
+    @apply p-3 text-base uppercase border border-gray-300 rounded min-h-[40px] w-full md:w-[130px];
+  }
+
+  .version-select,
+  .group-select {
+    @apply w-full md:w-[200px] p-3 text-base border border-gray-300 rounded min-h-[40px];
+  }
+}
