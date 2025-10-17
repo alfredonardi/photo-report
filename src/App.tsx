@@ -31,6 +31,7 @@ function App() {
   const { handleImportPhotos, isImporting, progress } = usePhotoImport(addPhoto);
 
   const handleGeneratePDF = async () => {
+    // Validações
     if (!boNumber || boNumber.length < 9) {
       alert('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
       return;
