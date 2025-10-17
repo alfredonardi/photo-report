@@ -1,105 +1,64 @@
-import { dbPromise } from './indexedDB';
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Photo } from '../../types';
 
-export const photoService = {
-  async addPhoto(photo: string, description = '', rotation = 0): Promise<number> {
-    const db = await dbPromise;
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
-    
-    // Get all photos to determine the next position
-    const allPhotos = await store.getAll();
-    const nextPosition = allPhotos.length + 1;
-    
-    // Add new photo with auto-generated ID
-    const id = await store.add({
-      photo,
-      description,
-      position: nextPosition,
-      rotation
+/**
+ * Schema do IndexedDB usando o tipo Photo da aplicação
+ * Mantém consistência entre camada de persistência e domínio
+ */
+interface PhotoDBSchema extends DBSchema {
+  photos: {
+    key: number;
+    value: Photo;
+    indexes: {
+      'by-position': number;
+    };
+  };
+}
+
+const DB_NAME = 'photo-report-db';
+const DB_VERSION = 2; // Incrementado para adicionar índice
+
+/**
+ * Inicializa o banco de dados IndexedDB
+ * Cria object store e índices necessários
+ */
+export const initializeDB = async (): Promise<IDBPDatabase<PhotoDBSchema>> => {
+  try {
+    return await openDB<PhotoDBSchema>(DB_NAME, DB_VERSION, {
+      upgrade(db, oldVersion, newVersion, transaction) {
+        console.log(`Upgrading DB from version ${oldVersion} to ${newVersion}`);
+        
+        // Cria object store se não existir
+        if (!db.objectStoreNames.contains('photos')) {
+          const store = db.createObjectStore('photos', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          
+          // Cria índice para ordenação por posição
+          store.createIndex('by-position', 'position', { unique: false });
+          
+          console.log('Object store "photos" created with index "by-position"');
+        } else if (oldVersion < 2) {
+          // Migração: adiciona índice se estiver atualizando da v1 para v2
+          const store = transaction.objectStore('photos');
+          if (!store.indexNames.contains('by-position')) {
+            store.createIndex('by-position', 'position', { unique: false });
+            console.log('Index "by-position" added to existing store');
+          }
+        }
+      },
+      blocked() {
+        console.warn('Database blocked. Close other tabs using this database.');
+      },
+      blocking() {
+        console.warn('Database blocking. This version is blocking another connection.');
+      },
     });
-    
-    await transaction.done;
-    return id;
-  },
-
-  async updatePhoto(id: number, updatedData: Partial<Photo>): Promise<void> {
-    const db = await dbPromise;
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
-    
-    const existingPhoto = await store.get(id);
-    if (!existingPhoto) return;
-
-    if (updatedData.position && updatedData.position !== existingPhoto.position) {
-      const allPhotos = await store.getAll();
-      const oldPosition = existingPhoto.position;
-      const newPosition = updatedData.position;
-
-      // Update positions of other photos
-      for (const photo of allPhotos) {
-        if (photo.id === id) continue;
-
-        let newPos = photo.position;
-        if (oldPosition < newPosition) {
-          if (photo.position > oldPosition && photo.position <= newPosition) {
-            newPos = photo.position - 1;
-          }
-        } else {
-          if (photo.position >= newPosition && photo.position < oldPosition) {
-            newPos = photo.position + 1;
-          }
-        }
-
-        if (newPos !== photo.position) {
-          await store.put({ ...photo, position: newPos });
-        }
-      }
-    }
-
-    // Update the target photo
-    await store.put({ ...existingPhoto, ...updatedData });
-    await transaction.done;
-  },
-
-  async removePhoto(id: number): Promise<void> {
-    const db = await dbPromise;
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
-    
-    const photo = await store.get(id);
-    if (!photo) return;
-
-    // Remove the photo
-    await store.delete(id);
-
-    // Get remaining photos and update positions
-    const allPhotos = await store.getAll();
-    const sortedPhotos = allPhotos
-      .sort((a, b) => a.position - b.position)
-      .filter(p => p.id !== id);
-    
-    // Update positions to be sequential
-    for (let i = 0; i < sortedPhotos.length; i++) {
-      const newPosition = i + 1;
-      if (sortedPhotos[i].position !== newPosition) {
-        await store.put({ ...sortedPhotos[i], position: newPosition });
-      }
-    }
-
-    await transaction.done;
-  },
-
-  async getAllPhotos(): Promise<Photo[]> {
-    const db = await dbPromise;
-    const photos = await db.getAll('photos');
-    return photos.sort((a, b) => a.position - b.position);
-  },
-
-  async clearAllPhotos(): Promise<void> {
-    const db = await dbPromise;
-    const transaction = db.transaction('photos', 'readwrite');
-    await transaction.objectStore('photos').clear();
-    await transaction.done;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    throw new Error('Não foi possível inicializar o banco de dados.');
   }
 };
+
+export const dbPromise = initializeDB();
