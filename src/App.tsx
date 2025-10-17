@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
 import { CameraButton } from './components/CameraButton';
@@ -13,9 +13,12 @@ function App() {
   const [selectedGroup, setSelectedGroup] = useLocalStorage('selectedGroup', '');
   const [boNumber, setBoNumber] = useLocalStorage('boNumber', '');
   const [version, setVersion] = useLocalStorage('version', '');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const {
     photos,
+    isLoading,
+    error,
     addPhoto,
     updatePhotoDescription,
     updatePhotoPosition,
@@ -24,9 +27,10 @@ function App() {
     clearAllPhotos,
   } = usePhotos();
 
-  const { handleImportPhotos } = usePhotoImport(addPhoto);
+  const { handleImportPhotos, isImporting, progress } = usePhotoImport(addPhoto);
 
   const handleGeneratePDF = async () => {
+    // Validações
     if (!boNumber || boNumber.length < 9) {
       alert('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
       return;
@@ -45,34 +49,57 @@ function App() {
     if (!confirmations.confirmPDFGeneration(boNumber, photos)) {
       return;
     }
-    
-    await pdfGenerator.generatePDF(photos, {
-      boNumber,
-      version,
-      selectedGroup,
-      logo,
-    });
+
+    setIsGeneratingPDF(true);
+    try {
+      await pdfGenerator.generatePDF(photos, {
+        boNumber,
+        version,
+        selectedGroup,
+        logo,
+      });
+      alert('✓ PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('✗ Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleClearReport = async () => {
     const confirmClear = window.confirm(
-      'Você realmente deseja iniciar um novo relatório? Isso apagará todas as fotos, descrições e rotações.'
+      'Você realmente deseja iniciar um novo relatório?\n\n' +
+      'Isso apagará:\n' +
+      '• Todas as fotos\n' +
+      '• Todas as descrições\n' +
+      '• Todas as rotações\n\n' +
+      'Esta ação não pode ser desfeita.'
     );
+
     if (confirmClear) {
-      await clearAllPhotos();
-      setSelectedGroup('');
-      setBoNumber('');
-      setVersion('');
+      try {
+        await clearAllPhotos();
+        setSelectedGroup('');
+        setBoNumber('');
+        setVersion('');
+        alert('✓ Novo relatório iniciado!');
+      } catch (error) {
+        console.error('Error clearing report:', error);
+        alert('✗ Erro ao limpar relatório. Tente novamente.');
+      }
     }
   };
 
   return (
     <div className="app-container">
+      {/* Header */}
       <div className="app-header">
         <img src={logo} alt="Logo da Aplicação" className="app-logo" />
         <h1 className="font-bold">Gerador de Relatório Fotográfico</h1>
       </div>
 
+      {/* Form Inputs */}
       <div className="bo-input-container">
         <BOInput 
           value={boNumber} 
@@ -84,6 +111,7 @@ function App() {
           className="version-select"
           value={version}
           onChange={(e) => setVersion(e.target.value)}
+          disabled={isLoading}
         >
           <option value="">Selecione a versão</option>
           {[...Array(5)].map((_, i) => (
@@ -97,6 +125,7 @@ function App() {
           className="group-select"
           value={selectedGroup}
           onChange={(e) => setSelectedGroup(e.target.value)}
+          disabled={isLoading}
         >
           <option value="">Selecione o grupo</option>
           {[1, 2, 3, 4, 5].map((num) => (
@@ -107,6 +136,7 @@ function App() {
         </select>
       </div>
 
+      {/* Photo Import/Capture Buttons */}
       <div className="flex flex-col gap-3 mb-5">
         <input
           type="file"
@@ -115,32 +145,79 @@ function App() {
           id="import-input"
           className="hidden"
           onChange={handleImportPhotos}
+          disabled={isImporting || isLoading}
         />
         <button 
           onClick={() => document.getElementById('import-input')?.click()}
-          className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 active:bg-blue-700 transition-all"
+          className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 active:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isImporting || isLoading}
         >
-          Importar Fotos
+          {isImporting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="animate-spin">⏳</span>
+              Importando {progress?.current}/{progress?.total}...
+            </span>
+          ) : (
+            'Importar Fotos'
+          )}
         </button>
-        <CameraButton onPhotoCapture={addPhoto} />
+        <CameraButton onPhotoCapture={addPhoto} disabled={isLoading} />
       </div>
 
-      <PhotoList
-        photos={photos}
-        onDescriptionChange={updatePhotoDescription}
-        onPositionChange={updatePhotoPosition}
-        onRotate={rotatePhoto}
-        onRemove={removePhoto}
-      />
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-5">
+          ⚠️ {error}
+        </div>
+      )}
 
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin text-4xl mb-2">⏳</div>
+          <p className="text-gray-600">Carregando fotos...</p>
+        </div>
+      ) : (
+        <PhotoList
+          photos={photos}
+          onDescriptionChange={updatePhotoDescription}
+          onPositionChange={updatePhotoPosition}
+          onRotate={rotatePhoto}
+          onRemove={removePhoto}
+        />
+      )}
+
+      {/* Action Buttons */}
       <div className="action-buttons">
-        <button onClick={handleGeneratePDF} className="export-button">
-          Exportar como PDF
+        <button 
+          onClick={handleGeneratePDF} 
+          className="export-button disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isGeneratingPDF || isLoading || photos.length === 0}
+        >
+          {isGeneratingPDF ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="animate-spin">⏳</span>
+              Gerando PDF...
+            </span>
+          ) : (
+            `Exportar como PDF${photos.length > 0 ? ` (${photos.length} foto${photos.length > 1 ? 's' : ''})` : ''}`
+          )}
         </button>
-        <button onClick={handleClearReport} className="start-button">
+        <button 
+          onClick={handleClearReport} 
+          className="start-button disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isGeneratingPDF || isLoading}
+        >
           Iniciar Novo Relatório
         </button>
       </div>
+
+      {/* Photo Count */}
+      {!isLoading && photos.length > 0 && (
+        <div className="text-center text-sm text-gray-500 mt-3">
+          Total: {photos.length} foto{photos.length > 1 ? 's' : ''}
+        </div>
+      )}
     </div>
   );
 }
