@@ -15,10 +15,15 @@ export const usePhotos = () => {
   };
 
   const addPhoto = async (photoData: string) => {
+  try {
     const resizedPhoto = await imageUtils.resizeAndRotateToLandscape(photoData);
     await photoService.addPhoto(resizedPhoto);
     await loadPhotos();
-  };
+  } catch (error) {
+    console.error('Erro ao adicionar foto:', error);
+    alert('Não foi possível adicionar a foto. Por favor, tente novamente com outra imagem.');
+  }
+};
 
   const updatePhotoDescription = async (id: number, description: string) => {
     await photoService.updatePhoto(id, { description });
@@ -50,7 +55,8 @@ export const usePhotos = () => {
     await loadPhotos();
   };
 
-  const rotatePhoto = async (id: number, newRotation: number) => {
+const rotatePhoto = async (id: number, newRotation: number) => {
+  try {
     const photo = photos.find(p => p.id === id);
     if (!photo) return;
 
@@ -62,7 +68,11 @@ export const usePhotos = () => {
       rotation: newRotation 
     });
     await loadPhotos();
-  };
+  } catch (error) {
+    console.error('Erro ao rotacionar foto:', error);
+    alert('Não foi possível rotacionar a foto. Por favor, tente novamente.');
+  }
+};
 
   const removePhoto = async (id: number) => {
     await photoService.removePhoto(id);
