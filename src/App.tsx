@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
 import { CameraButton } from './components/CameraButton';
+import { AppFooter } from './components/AppFooter';
 import { usePhotos } from './hooks/usePhotos';
 import { usePhotoImport } from './hooks/usePhotoImport';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -29,18 +30,7 @@ function App() {
 
   const { handleImportPhotos, isImporting, progress } = usePhotoImport(addPhoto);
 
-  // FIX: Limpa erro após alguns segundos
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        // Poderia adicionar uma função clearError no hook
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
   const handleGeneratePDF = async () => {
-    // FIX: Valida primeiro para evitar processamento desnecessário
     if (!boNumber || boNumber.length < 9) {
       alert('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
       return;
@@ -53,12 +43,6 @@ function App() {
 
     if (!selectedGroup) {
       alert('Por favor, selecione o grupo antes de continuar.');
-      return;
-    }
-
-    // FIX: Valida quantidade mínima de fotos
-    if (photos.length === 0) {
-      alert('Adicione pelo menos uma foto antes de gerar o relatório.');
       return;
     }
 
@@ -107,9 +91,6 @@ function App() {
     }
   };
 
-  // FIX: Previne geração de PDF se houver operações pendentes
-  const canGeneratePDF = !isGeneratingPDF && !isLoading && !isImporting && photos.length > 0;
-
   return (
     <div className="app-container">
       {/* Header */}
@@ -130,7 +111,7 @@ function App() {
           className="version-select"
           value={version}
           onChange={(e) => setVersion(e.target.value)}
-          disabled={isLoading || isImporting}
+          disabled={isLoading}
         >
           <option value="">Selecione a versão</option>
           {[...Array(5)].map((_, i) => (
@@ -144,7 +125,7 @@ function App() {
           className="group-select"
           value={selectedGroup}
           onChange={(e) => setSelectedGroup(e.target.value)}
-          disabled={isLoading || isImporting}
+          disabled={isLoading}
         >
           <option value="">Selecione o grupo</option>
           {[1, 2, 3, 4, 5].map((num) => (
@@ -180,17 +161,13 @@ function App() {
             'Importar Fotos'
           )}
         </button>
-        <CameraButton 
-          onPhotoCapture={addPhoto} 
-          disabled={isLoading || isImporting} 
-        />
+        <CameraButton onPhotoCapture={addPhoto} disabled={isLoading} />
       </div>
 
-      {/* Error Message - FIX: Melhor estilização e botão de dismiss */}
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-5 flex justify-between items-center">
-          <span>⚠️ {error}</span>
-          {/* FIX: Adicionar botão para fechar erro manualmente seria útil */}
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-5">
+          ⚠️ {error}
         </div>
       )}
 
@@ -215,14 +192,7 @@ function App() {
         <button 
           onClick={handleGeneratePDF} 
           className="export-button disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!canGeneratePDF}
-          title={
-            !canGeneratePDF 
-              ? photos.length === 0 
-                ? 'Adicione fotos antes de gerar PDF' 
-                : 'Aguarde as operações em andamento' 
-              : 'Gerar PDF com as fotos'
-          }
+          disabled={isGeneratingPDF || isLoading || photos.length === 0}
         >
           {isGeneratingPDF ? (
             <span className="flex items-center justify-center gap-2">
@@ -236,7 +206,7 @@ function App() {
         <button 
           onClick={handleClearReport} 
           className="start-button disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isGeneratingPDF || isLoading || isImporting}
+          disabled={isGeneratingPDF || isLoading}
         >
           Iniciar Novo Relatório
         </button>
@@ -248,6 +218,9 @@ function App() {
           Total: {photos.length} foto{photos.length > 1 ? 's' : ''}
         </div>
       )}
+
+      {/* Footer com créditos */}
+      <AppFooter />
     </div>
   );
 }
