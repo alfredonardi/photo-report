@@ -13,6 +13,17 @@ export const PositionSelector: React.FC<PositionSelectorProps> = ({
   totalPhotos,
   onPositionChange,
 }) => {
+  // Validação: não mostrar seletor se houver apenas 1 foto
+  if (totalPhotos <= 1) {
+    return (
+      <div className="position-selector">
+        <div className="position-info">
+          <span className="position-label">Posição {currentPosition}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="position-selector">
       <div className="position-info">
@@ -23,7 +34,7 @@ export const PositionSelector: React.FC<PositionSelectorProps> = ({
         value={currentPosition}
         onChange={(e) => onPositionChange(id, parseInt(e.target.value))}
         className="position-select"
-        aria-label="Alterar posição da foto"
+        aria-label={`Alterar posição da foto ${currentPosition}`}
       >
         <option key="placeholder" value={currentPosition}>
           Alterar posição...
