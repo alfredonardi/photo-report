@@ -1,96 +1,174 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Photo, photoService } from '../services/database/photoService';
 import { imageUtils } from '../utils/imageProcessing';
 
+/**
+ * Hook personalizado para gerenciar fotos
+ * Provê interface reativa para operações CRUD de fotos
+ */
 export const usePhotos = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadPhotos();
+  /**
+   * Carrega todas as fotos do banco de dados
+   */
+  const loadPhotos = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const loadedPhotos = await photoService.getAllPhotos();
+      setPhotos(loadedPhotos);
+    } catch (err) {
+      const errorMessage = 'Erro ao carregar fotos. Tente recarregar a página.';
+      setError(errorMessage);
+      console.error('Error loading photos:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const loadPhotos = async () => {
-    const loadedPhotos = await photoService.getAllPhotos();
-    setPhotos(loadedPhotos);
-  };
+  // Carrega fotos na inicialização
+  useEffect(() => {
+    loadPhotos();
+  }, [loadPhotos]);
 
-  const addPhoto = async (photoData: string) => {
-  try {
-    const resizedPhoto = await imageUtils.resizeAndRotateToLandscape(photoData);
-    await photoService.addPhoto(resizedPhoto);
-    await loadPhotos();
-  } catch (error) {
-    console.error('Erro ao adicionar foto:', error);
-    alert('Não foi possível adicionar a foto. Por favor, tente novamente com outra imagem.');
-  }
-};
+  /**
+   * Adiciona uma nova foto
+   * Processa imagem (redimensiona e rotaciona se necessário)
+   */
+  const addPhoto = useCallback(async (photoData: string): Promise<void> => {
+    try {
+      setError(null);
+      
+      // Processa imagem para formato landscape e redimensiona
+      const resizedPhoto = await imageUtils.resizeAndRotateToLandscape(photoData);
+      
+      // Adiciona ao banco
+      await photoService.addPhoto(resizedPhoto);
+      
+      // Recarrega lista
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Não foi possível adicionar a foto. Tente novamente com outra imagem.';
+      setError(errorMessage);
+      console.error('Error adding photo:', err);
+      throw new Error(errorMessage);
+    }
+  }, [loadPhotos]);
 
-  const updatePhotoDescription = async (id: number, description: string) => {
-    await photoService.updatePhoto(id, { description });
-    await loadPhotos();
-  };
+  /**
+   * Atualiza descrição de uma foto
+   */
+  const updatePhotoDescription = useCallback(async (id: number, description: string): Promise<void> => {
+    try {
+      setError(null);
+      await photoService.updatePhoto(id, { description });
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Erro ao atualizar descrição.';
+      setError(errorMessage);
+      console.error('Error updating description:', err);
+      throw new Error(errorMessage);
+    }
+  }, [loadPhotos]);
 
-  const updatePhotoPosition = async (id: number, newPosition: number) => {
+  /**
+   * Atualiza posição de uma foto
+   */
+  const updatePhotoPosition = useCallback(async (id: number, newPosition: number): Promise<void> => {
     const photo = photos.find(p => p.id === id);
     if (!photo || photo.position === newPosition) return;
 
-    // Update positions of other photos
-    if (newPosition < photo.position) {
-      const photosToUpdate = photos.filter(
-        p => p.position >= newPosition && p.position < photo.position && p.id !== id
-      );
-      for (const p of photosToUpdate) {
-        await photoService.updatePhoto(p.id, { position: p.position + 1 });
-      }
-    } else {
-      const photosToUpdate = photos.filter(
-        p => p.position <= newPosition && p.position > photo.position && p.id !== id
-      );
-      for (const p of photosToUpdate) {
-        await photoService.updatePhoto(p.id, { position: p.position - 1 });
-      }
+    try {
+      setError(null);
+      await photoService.updatePhoto(id, { position: newPosition });
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Erro ao atualizar posição.';
+      setError(errorMessage);
+      console.error('Error updating position:', err);
+      throw new Error(errorMessage);
     }
+  }, [photos, loadPhotos]);
 
-    await photoService.updatePhoto(id, { position: newPosition });
-    await loadPhotos();
-  };
+  /**
+   * Rotaciona uma foto
+   * Aplica rotação física na imagem
+   */
+  const rotatePhoto = useCallback(async (id: number, newRotation: number): Promise<void> => {
+    try {
+      setError(null);
+      
+      const photo = photos.find(p => p.id === id);
+      if (!photo) {
+        throw new Error('Foto não encontrada');
+      }
 
-const rotatePhoto = async (id: number, newRotation: number) => {
-  try {
-    const photo = photos.find(p => p.id === id);
-    if (!photo) return;
+      // Calcula diferença de rotação
+      const rotationDiff = newRotation - photo.rotation;
+      
+      // Aplica rotação física na imagem
+      const rotatedImage = await imageUtils.rotateImage(photo.photo, rotationDiff);
 
-    const rotationDiff = newRotation - photo.rotation;
-    const rotatedImage = await imageUtils.rotateImage(photo.photo, rotationDiff);
+      // Atualiza banco com nova imagem e rotação
+      await photoService.updatePhoto(id, { 
+        photo: rotatedImage, 
+        rotation: newRotation 
+      });
+      
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Não foi possível rotacionar a foto. Tente novamente.';
+      setError(errorMessage);
+      console.error('Error rotating photo:', err);
+      throw new Error(errorMessage);
+    }
+  }, [photos, loadPhotos]);
 
-    await photoService.updatePhoto(id, { 
-      photo: rotatedImage, 
-      rotation: newRotation 
-    });
-    await loadPhotos();
-  } catch (error) {
-    console.error('Erro ao rotacionar foto:', error);
-    alert('Não foi possível rotacionar a foto. Por favor, tente novamente.');
-  }
-};
+  /**
+   * Remove uma foto
+   */
+  const removePhoto = useCallback(async (id: number): Promise<void> => {
+    try {
+      setError(null);
+      await photoService.removePhoto(id);
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Erro ao remover foto.';
+      setError(errorMessage);
+      console.error('Error removing photo:', err);
+      throw new Error(errorMessage);
+    }
+  }, [loadPhotos]);
 
-  const removePhoto = async (id: number) => {
-    await photoService.removePhoto(id);
-    await loadPhotos();
-  };
-
-  const clearAllPhotos = async () => {
-    await photoService.clearAllPhotos();
-    await loadPhotos();
-  };
+  /**
+   * Limpa todas as fotos
+   */
+  const clearAllPhotos = useCallback(async (): Promise<void> => {
+    try {
+      setError(null);
+      await photoService.clearAllPhotos();
+      await loadPhotos();
+    } catch (err) {
+      const errorMessage = 'Erro ao limpar fotos.';
+      setError(errorMessage);
+      console.error('Error clearing photos:', err);
+      throw new Error(errorMessage);
+    }
+  }, [loadPhotos]);
 
   return {
     photos,
+    isLoading,
+    error,
     addPhoto,
     updatePhotoDescription,
     updatePhotoPosition,
     rotatePhoto,
     removePhoto,
     clearAllPhotos,
+    refreshPhotos: loadPhotos,
   };
 };
