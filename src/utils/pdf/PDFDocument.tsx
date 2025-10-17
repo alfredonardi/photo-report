@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, StyleSheet } from '@react-pdf/renderer';
 import { Photo } from '../../types';
 import { Header } from './components/Header';
 import { Title } from './components/Title';
@@ -56,11 +56,11 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({
             logo={logo}
           />
           {pageIndex === 0 && <Title />}
-          <div style={styles.pageContent}>
+          <View style={styles.pageContent}>
             {groupPhotos.map(photo => (
               <PhotoItem key={photo.id} photo={photo} />
             ))}
-          </div>
+          </View>
           <Footer />
         </Page>
       ))}
