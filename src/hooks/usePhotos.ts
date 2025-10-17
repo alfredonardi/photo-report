@@ -36,7 +36,7 @@ export const usePhotos = () => {
 
   /**
    * Adiciona uma nova foto
-   * Processa imagem (redimensiona e rotaciona se necessário)
+   * FIX: Melhora tratamento de erro e não joga exceção desnecessária
    */
   const addPhoto = useCallback(async (photoData: string): Promise<void> => {
     try {
@@ -54,56 +54,107 @@ export const usePhotos = () => {
       const errorMessage = 'Não foi possível adicionar a foto. Tente novamente com outra imagem.';
       setError(errorMessage);
       console.error('Error adding photo:', err);
-      throw new Error(errorMessage);
+      // FIX: Não joga erro aqui, apenas loga - o componente já trata o erro via state
     }
   }, [loadPhotos]);
 
   /**
    * Atualiza descrição de uma foto
+   * FIX: Adiciona validação de entrada
    */
   const updatePhotoDescription = useCallback(async (id: number, description: string): Promise<void> => {
+    // FIX: Valida entrada antes de processar
+    if (description.length > 78) {
+      console.warn('Descrição excede 78 caracteres, truncando...');
+      description = description.substring(0, 78);
+    }
+
     try {
       setError(null);
       await photoService.updatePhoto(id, { description });
-      await loadPhotos();
+      
+      // FIX: Atualização otimista - atualiza UI antes de recarregar
+      setPhotos(prev => prev.map(p => 
+        p.id === id ? { ...p, description } : p
+      ));
     } catch (err) {
       const errorMessage = 'Erro ao atualizar descrição.';
       setError(errorMessage);
       console.error('Error updating description:', err);
-      throw new Error(errorMessage);
+      // Recarrega para sincronizar em caso de erro
+      await loadPhotos();
     }
   }, [loadPhotos]);
 
   /**
    * Atualiza posição de uma foto
+   * FIX: Adiciona validação e atualização otimista
    */
   const updatePhotoPosition = useCallback(async (id: number, newPosition: number): Promise<void> => {
     const photo = photos.find(p => p.id === id);
     if (!photo || photo.position === newPosition) return;
 
+    // FIX: Valida range da posição
+    if (newPosition < 1 || newPosition > photos.length) {
+      console.error('Posição inválida:', newPosition);
+      return;
+    }
+
     try {
       setError(null);
+      
+      // FIX: Atualização otimista da UI
+      const oldPosition = photo.position;
+      const updatedPhotos = photos.map(p => {
+        if (p.id === id) return { ...p, position: newPosition };
+        if (oldPosition < newPosition) {
+          // Move para baixo: decrementa posições entre old e new
+          if (p.position > oldPosition && p.position <= newPosition) {
+            return { ...p, position: p.position - 1 };
+          }
+        } else {
+          // Move para cima: incrementa posições entre new e old
+          if (p.position >= newPosition && p.position < oldPosition) {
+            return { ...p, position: p.position + 1 };
+          }
+        }
+        return p;
+      });
+      
+      setPhotos(updatedPhotos);
+      
       await photoService.updatePhoto(id, { position: newPosition });
-      await loadPhotos();
     } catch (err) {
       const errorMessage = 'Erro ao atualizar posição.';
       setError(errorMessage);
       console.error('Error updating position:', err);
-      throw new Error(errorMessage);
+      // Recarrega em caso de erro
+      await loadPhotos();
     }
   }, [photos, loadPhotos]);
 
   /**
    * Rotaciona uma foto
-   * Aplica rotação física na imagem
+   * FIX: Adiciona validação de rotação
    */
   const rotatePhoto = useCallback(async (id: number, newRotation: number): Promise<void> => {
+    // FIX: Valida valores de rotação
+    if (![0, 90, 180, 270].includes(newRotation)) {
+      console.error('Rotação inválida:', newRotation);
+      return;
+    }
+
     try {
       setError(null);
       
       const photo = photos.find(p => p.id === id);
       if (!photo) {
         throw new Error('Foto não encontrada');
+      }
+
+      // FIX: Evita processamento desnecessário se rotação é a mesma
+      if (photo.rotation === newRotation) {
+        return;
       }
 
       // Calcula diferença de rotação
@@ -123,7 +174,6 @@ export const usePhotos = () => {
       const errorMessage = 'Não foi possível rotacionar a foto. Tente novamente.';
       setError(errorMessage);
       console.error('Error rotating photo:', err);
-      throw new Error(errorMessage);
     }
   }, [photos, loadPhotos]);
 
@@ -133,13 +183,17 @@ export const usePhotos = () => {
   const removePhoto = useCallback(async (id: number): Promise<void> => {
     try {
       setError(null);
+      
+      // FIX: Atualização otimista
+      setPhotos(prev => prev.filter(p => p.id !== id));
+      
       await photoService.removePhoto(id);
-      await loadPhotos();
     } catch (err) {
       const errorMessage = 'Erro ao remover foto.';
       setError(errorMessage);
       console.error('Error removing photo:', err);
-      throw new Error(errorMessage);
+      // Recarrega em caso de erro
+      await loadPhotos();
     }
   }, [loadPhotos]);
 
@@ -150,12 +204,12 @@ export const usePhotos = () => {
     try {
       setError(null);
       await photoService.clearAllPhotos();
-      await loadPhotos();
+      setPhotos([]); // FIX: Limpa state imediatamente
     } catch (err) {
       const errorMessage = 'Erro ao limpar fotos.';
       setError(errorMessage);
       console.error('Error clearing photos:', err);
-      throw new Error(errorMessage);
+      await loadPhotos();
     }
   }, [loadPhotos]);
 
