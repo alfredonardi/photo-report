@@ -1,64 +1,112 @@
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { dbPromise } from './indexedDB';
 import { Photo } from '../../types';
 
 /**
- * Schema do IndexedDB usando o tipo Photo da aplicação
- * Mantém consistência entre camada de persistência e domínio
+ * Serviço para gerenciar operações CRUD de fotos no IndexedDB
+ * Usa a conexão compartilhada de indexedDB.ts
  */
-interface PhotoDBSchema extends DBSchema {
-  photos: {
-    key: number;
-    value: Photo;
-    indexes: {
-      'by-position': number;
+export const photoService = {
+  /**
+   * Retorna todas as fotos do banco de dados
+   */
+  async getAllPhotos(): Promise<Photo[]> {
+    const db = await dbPromise;
+    return db.getAll('photos');
+  },
+
+  /**
+   * Adiciona uma nova foto ao banco
+   * Calcula automaticamente a próxima posição disponível
+   */
+  async addPhoto(photoData: string): Promise<number> {
+    const db = await dbPromise;
+    const photos = await this.getAllPhotos();
+    const maxPosition = photos.length > 0 
+      ? Math.max(...photos.map(p => p.position))
+      : 0;
+
+    const newPhoto: Omit<Photo, 'id'> = {
+      photo: photoData,
+      description: '',
+      position: maxPosition + 1,
+      rotation: 0,
     };
-  };
-}
 
-const DB_NAME = 'photo-report-db';
-const DB_VERSION = 2; // Incrementado para adicionar índice
+    return db.add('photos', newPhoto as Photo);
+  },
 
-/**
- * Inicializa o banco de dados IndexedDB
- * Cria object store e índices necessários
- */
-export const initializeDB = async (): Promise<IDBPDatabase<PhotoDBSchema>> => {
-  try {
-    return await openDB<PhotoDBSchema>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion, newVersion, transaction) {
-        console.log(`Upgrading DB from version ${oldVersion} to ${newVersion}`);
-        
-        // Cria object store se não existir
-        if (!db.objectStoreNames.contains('photos')) {
-          const store = db.createObjectStore('photos', {
-            keyPath: 'id',
-            autoIncrement: true,
-          });
-          
-          // Cria índice para ordenação por posição
-          store.createIndex('by-position', 'position', { unique: false });
-          
-          console.log('Object store "photos" created with index "by-position"');
-        } else if (oldVersion < 2) {
-          // Migração: adiciona índice se estiver atualizando da v1 para v2
-          const store = transaction.objectStore('photos');
-          if (!store.indexNames.contains('by-position')) {
-            store.createIndex('by-position', 'position', { unique: false });
-            console.log('Index "by-position" added to existing store');
-          }
-        }
-      },
-      blocked() {
-        console.warn('Database blocked. Close other tabs using this database.');
-      },
-      blocking() {
-        console.warn('Database blocking. This version is blocking another connection.');
-      },
-    });
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    throw new Error('Não foi possível inicializar o banco de dados.');
-  }
+  /**
+   * Atualiza uma foto existente
+   * Se a posição mudar, faz swap com a foto na posição alvo
+   */
+  async updatePhoto(id: number, updates: Partial<Omit<Photo, 'id'>>): Promise<void> {
+    const db = await dbPromise;
+    const photo = await db.get('photos', id);
+    
+    if (!photo) {
+      throw new Error('Foto não encontrada');
+    }
+
+    // Se mudou a posição, troca com a foto que está na posição alvo
+    if (updates.position !== undefined && updates.position !== photo.position) {
+      const allPhotos = await this.getAllPhotos();
+      const targetPhoto = allPhotos.find(p => p.position === updates.position);
+      
+      if (targetPhoto) {
+        await db.put('photos', { ...targetPhoto, position: photo.position });
+      }
+    }
+
+    await db.put('photos', { ...photo, ...updates });
+  },
+
+  /**
+   * Remove uma foto do banco
+   * Reordena automaticamente as posições das fotos seguintes
+   */
+  async removePhoto(id: number): Promise<void> {
+    const db = await dbPromise;
+    const photo = await db.get('photos', id);
+    
+    if (!photo) return;
+
+    await db.delete('photos', id);
+
+    // Reordena as fotos que vinham depois
+    const allPhotos = await this.getAllPhotos();
+    const photosToUpdate = allPhotos
+      .filter(p => p.position > photo.position)
+      .sort((a, b) => a.position - b.position);
+
+    for (const p of photosToUpdate) {
+      await db.put('photos', { ...p, position: p.position - 1 });
+    }
+  },
+
+  /**
+   * Remove todas as fotos do banco
+   */
+  async clearAllPhotos(): Promise<void> {
+    const db = await dbPromise;
+    await db.clear('photos');
+  },
+
+  /**
+   * Retorna uma foto específica por ID
+   */
+  async getPhotoById(id: number): Promise<Photo | undefined> {
+    const db = await dbPromise;
+    return db.get('photos', id);
+  },
+
+  /**
+   * Retorna o total de fotos no banco
+   */
+  async getPhotoCount(): Promise<number> {
+    const db = await dbPromise;
+    return db.count('photos');
+  },
 };
 
-export const dbPromise = initializeDB();
+// Re-exporta o tipo Photo para conveniência
+export type { Photo };
