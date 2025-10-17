@@ -6,7 +6,7 @@ interface PhotoListProps {
   photos: Photo[];
   onDescriptionChange: (id: number, description: string) => void;
   onPositionChange: (id: number, position: number) => void;
-  onRotate: (id: number) => void;
+ onRotate: (id: number, rotation: number) => void;
   onRemove: (id: number) => void;
 }
 
