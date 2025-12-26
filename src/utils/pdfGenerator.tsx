@@ -28,15 +28,43 @@ export const pdfGenerator = {
         />
       ).toBlob();
 
-      // Create download link with formatted filename
+      const filename = formatters.formatPDFFilename(config.boNumber);
+
+      // Verifica se o navegador suporta Web Share API (mobile principalmente)
+      if (navigator.share && navigator.canShare) {
+        try {
+          // Cria um arquivo a partir do blob
+          const file = new File([blob], filename, { type: 'application/pdf' });
+
+          // Verifica se pode compartilhar arquivos
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Relatório Fotográfico',
+              text: `Relatório do BO ${config.boNumber}`,
+            });
+            return; // Sucesso! Saiu do compartilhamento
+          }
+        } catch (shareError: any) {
+          // Se usuário cancelou o compartilhamento, não é erro
+          if (shareError.name === 'AbortError') {
+            console.log('Compartilhamento cancelado pelo usuário');
+            return;
+          }
+          // Se falhou por outro motivo, continua para o download tradicional
+          console.warn('Falha ao compartilhar, usando download tradicional:', shareError);
+        }
+      }
+
+      // Fallback: Download tradicional (desktop ou se Share API falhou)
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = formatters.formatPDFFilename(config.boNumber);
-      
+      link.download = filename;
+
       // Trigger download
       link.click();
-      
+
       // Cleanup
       URL.revokeObjectURL(url);
     } catch (error) {
