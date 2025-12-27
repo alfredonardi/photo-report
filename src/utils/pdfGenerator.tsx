@@ -11,6 +11,24 @@ interface PDFConfig {
   logo: string;
 }
 
+/**
+ * Detecta se é dispositivo móvel
+ * Usa uma combinação de user agent e características do dispositivo
+ */
+const isMobileDevice = (): boolean => {
+  // Checa user agent
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+  const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+
+  // Checa se tem touch screen E tela pequena
+  const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isSmallScreen = window.innerWidth <= 768;
+
+  // É mobile se: tem keywords mobile OU (tem touch + tela pequena)
+  return isMobileUA || (hasTouchScreen && isSmallScreen);
+};
+
 export const pdfGenerator = {
   async generatePDF(photos: Photo[], config: PDFConfig): Promise<void> {
     try {
@@ -30,8 +48,11 @@ export const pdfGenerator = {
 
       const filename = formatters.formatPDFFilename(config.boNumber);
 
-      // Verifica se o navegador suporta Web Share API (mobile principalmente)
-      if (navigator.share && navigator.canShare) {
+      // Detecta se é mobile
+      const isMobile = isMobileDevice();
+
+      // MOBILE: Tenta usar Web Share API para compartilhamento
+      if (isMobile && navigator.share && navigator.canShare) {
         try {
           // Cria um arquivo a partir do blob
           const file = new File([blob], filename, { type: 'application/pdf' });
@@ -43,20 +64,21 @@ export const pdfGenerator = {
               title: 'Relatório Fotográfico',
               text: `Relatório do BO ${config.boNumber}`,
             });
-            return; // Sucesso! Saiu do compartilhamento
+            return; // Sucesso! Compartilhou
           }
         } catch (shareError: any) {
-          // Se usuário cancelou o compartilhamento, não é erro
+          // Se usuário cancelou, faz download direto
           if (shareError.name === 'AbortError') {
-            console.log('Compartilhamento cancelado pelo usuário');
-            return;
+            console.log('Compartilhamento cancelado, fazendo download...');
+            // Continua para o download abaixo
+          } else {
+            // Outro erro, continua para o download
+            console.warn('Erro ao compartilhar, fazendo download:', shareError);
           }
-          // Se falhou por outro motivo, continua para o download tradicional
-          console.warn('Falha ao compartilhar, usando download tradicional:', shareError);
         }
       }
 
-      // Fallback: Download tradicional (desktop ou se Share API falhou)
+      // DESKTOP ou FALLBACK: Download tradicional
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
