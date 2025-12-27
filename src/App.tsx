@@ -110,7 +110,7 @@ function App() {
 
   // Se não estiver autenticado, mostra tela de login
   if (!isAuthenticated) {
-    return <Login onLogin={login} onSignup={signup} />;
+    return <Login onLogin={login} />;
   }
 
   // Se estiver autenticado, mostra o app normalmente

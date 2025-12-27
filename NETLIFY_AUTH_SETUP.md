@@ -14,17 +14,21 @@ Este guia ensina como configurar a autenticação de usuários para o app usando
 
 ---
 
-## 👥 Passo 2: Configurar Registro de Usuários
+## 👥 Passo 2: Configurar Registro de Usuários (IMPORTANTE!)
 
-Por padrão, qualquer pessoa pode criar uma conta. Para restringir apenas a usuários convidados:
+**⚠️ ATENÇÃO: Este passo é OBRIGATÓRIO para segurança!**
+
+Por padrão, qualquer pessoa poderia criar uma conta. Vamos BLOQUEAR isso:
 
 1. Em **Identity** → **Settings and usage**
 2. Role até **Registration preferences**
 3. Clique em **Edit settings**
-4. Selecione: **Invite only** (Apenas por convite)
+4. Selecione: **Invite only** (Apenas por convite) ⭐
 5. Clique em **Save**
 
-✅ Agora apenas você pode convidar usuários!
+✅ **Pronto! Agora NINGUÉM pode criar conta sem seu convite!**
+
+🔒 Sem esta configuração, qualquer pessoa poderia se cadastrar. Com "Invite only", APENAS você pode adicionar usuários pelo painel do Netlify.
 
 ---
 
