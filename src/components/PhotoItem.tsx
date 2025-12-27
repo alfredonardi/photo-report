@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Photo } from '../services/database/photoService';
 import { PositionSelector } from './PositionSelector';
+import { RotateCw, RotateCcw } from 'lucide-react';
 
 interface PhotoItemProps {
   photo: Photo;
@@ -37,8 +38,14 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     }
   };
 
-  const handleRotationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onRotate(photo.id, parseInt(e.target.value));
+  const handleRotateRight = () => {
+    const newRotation = (photo.rotation + 90) % 360;
+    onRotate(photo.id, newRotation);
+  };
+
+  const handleRotateLeft = () => {
+    const newRotation = (photo.rotation - 90 + 360) % 360;
+    onRotate(photo.id, newRotation);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -70,16 +77,24 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
         />
       </div>
       <div className="rotation-selector">
-        <select
-          value={photo.rotation}
-          onChange={handleRotationChange}
-          className="p-2 text-sm border border-gray-300 rounded w-full mt-2 mb-2"
-        >
-          <option value="0">Rotação: 0°</option>
-          <option value="90">Rotação: 90°</option>
-          <option value="180">Rotação: 180°</option>
-          <option value="270">Rotação: 270°</option>
-        </select>
+        <div className="flex items-center gap-2 mt-2 mb-2">
+          <button
+            onClick={handleRotateLeft}
+            className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded border border-gray-300 transition-colors"
+            title="Rotacionar para esquerda (sentido anti-horário)"
+          >
+            <RotateCcw size={18} />
+            <span className="text-sm">Esquerda</span>
+          </button>
+          <button
+            onClick={handleRotateRight}
+            className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded border border-gray-300 transition-colors"
+            title="Rotacionar para direita (sentido horário)"
+          >
+            <span className="text-sm">Direita</span>
+            <RotateCw size={18} />
+          </button>
+        </div>
       </div>
       <div className="photo-item-controls">
         <PositionSelector
