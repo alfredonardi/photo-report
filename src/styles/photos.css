@@ -31,6 +31,10 @@
     @apply text-center text-sm mt-2;
   }
 
+  .rotation-selector {
+    @apply flex justify-center items-center;
+  }
+
   .position-selector {
     @apply flex flex-col gap-2 mt-3;
   }

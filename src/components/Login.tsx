@@ -18,7 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <img
             src={logo}
             alt="Logo"
-            className="w-24 h-24 mx-auto mb-4 rounded-full object-cover shadow-md"
+            className="w-32 h-32 mx-auto mb-4 object-contain"
           />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Relatório Fotográfico

@@ -4,11 +4,11 @@
   }
 
   .app-header {
-    @apply flex items-center justify-center flex-col text-center mb-5;
+    @apply flex items-center justify-center flex-col text-center mb-5 mt-6;
   }
 
   .app-logo {
-    @apply w-32 h-auto mb-3;
+    @apply w-32 h-auto mb-4 mt-2;
   }
 
   .app-header h1 {
