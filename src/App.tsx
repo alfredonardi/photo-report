@@ -3,14 +3,18 @@ import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
 import { CameraButton } from './components/CameraButton';
 import { AppFooter } from './components/AppFooter';
+import { Login } from './components/Login';
+import { AuthHeader } from './components/AuthHeader';
 import { usePhotos } from './hooks/usePhotos';
 import { usePhotoImport } from './hooks/usePhotoImport';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useAuth } from './hooks/useAuth';
 import { pdfGenerator } from './utils/pdfGenerator';
 import { confirmations } from './utils/confirmations';
 import logo from './assets/logo.jpg';
 
 function App() {
+  const { user, loading: authLoading, login, signup, logout, isAuthenticated } = useAuth();
   const [selectedGroup, setSelectedGroup] = useLocalStorage('selectedGroup', '');
   const [boNumber, setBoNumber] = useLocalStorage('boNumber', '');
   const [version, setVersion] = useLocalStorage('version', '');
@@ -92,8 +96,29 @@ function App() {
     }
   };
 
+  // Loading state da autenticação
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+        <div className="text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <p className="text-gray-600 text-lg">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não estiver autenticado, mostra tela de login
+  if (!isAuthenticated) {
+    return <Login onLogin={login} />;
+  }
+
+  // Se estiver autenticado, mostra o app normalmente
   return (
     <div className="app-container">
+      {/* Header de autenticação */}
+      {user && <AuthHeader user={user} onLogout={logout} />}
+
       {/* Header */}
       <div className="app-header">
         <img src={logo} alt="Logo da Aplicação" className="app-logo" />
