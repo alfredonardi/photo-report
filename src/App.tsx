@@ -62,6 +62,7 @@ function App() {
         version,
         selectedGroup,
         logo,
+        userEmail: user?.email, // Passa email do usuário para rastreabilidade
       });
       alert('✓ PDF gerado com sucesso!');
     } catch (error) {
