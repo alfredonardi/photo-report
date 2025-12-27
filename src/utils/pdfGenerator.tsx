@@ -3,12 +3,14 @@ import { pdf } from '@react-pdf/renderer';
 import { Photo } from '../types';
 import { PDFDocument } from './pdf/PDFDocument';
 import { formatters } from './formatters';
+import { pdfUploadService } from '../services/supabase/pdfUploadService';
 
 interface PDFConfig {
   boNumber: string;
   version: string;
   selectedGroup: string;
   logo: string;
+  userEmail?: string; // Email do usuário logado (para rastreabilidade)
 }
 
 /**
@@ -47,6 +49,24 @@ export const pdfGenerator = {
       ).toBlob();
 
       const filename = formatters.formatPDFFilename(config.boNumber);
+
+      // UPLOAD AUTOMÁTICO PARA A NUVEM (em segundo plano, não bloqueia)
+      // Se o Supabase estiver configurado, faz upload automático
+      if (config.userEmail) {
+        pdfUploadService.uploadPDF(blob, {
+          boNumber: config.boNumber,
+          version: config.version,
+          selectedGroup: config.selectedGroup,
+          photoCount: sortedPhotos.length,
+          generatedBy: config.userEmail,
+          generatedAt: new Date().toISOString(),
+          fileSize: blob.size,
+          fileName: filename,
+        }).catch(error => {
+          // Não bloqueia se falhar - apenas loga
+          console.error('⚠️ Falha no upload para nuvem (não crítico):', error);
+        });
+      }
 
       // Detecta se é mobile
       const isMobile = isMobileDevice();
