@@ -1,4 +1,4 @@
-import { getSupabaseClient, isSupabaseConfigured } from './config';
+import { supabase, isSupabaseConfigured } from './config';
 
 /**
  * Interface para metadados do PDF
@@ -33,11 +33,6 @@ export const pdfUploadService = {
       // Verifica se Supabase está configurado
       if (!isSupabaseConfigured()) {
         console.log('📦 Supabase não configurado - PDF não será salvo na nuvem');
-        return null;
-      }
-
-      const supabase = getSupabaseClient();
-      if (!supabase) {
         return null;
       }
 
@@ -104,8 +99,7 @@ export const pdfUploadService = {
    */
   async listUserPDFs(userEmail: string): Promise<any[]> {
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) {
+      if (!isSupabaseConfigured()) {
         return [];
       }
 
@@ -132,8 +126,7 @@ export const pdfUploadService = {
    */
   async searchByBO(boNumber: string): Promise<any[]> {
     try {
-      const supabase = getSupabaseClient();
-      if (!supabase) {
+      if (!isSupabaseConfigured()) {
         return [];
       }
 

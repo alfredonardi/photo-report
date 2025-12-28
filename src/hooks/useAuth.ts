@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import netlifyIdentity from 'netlify-identity-widget';
+import { supabase } from '../services/supabase/config';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
@@ -10,7 +11,7 @@ export interface User {
 }
 
 /**
- * Hook de autenticação com Netlify Identity
+ * Hook de autenticação com Supabase Auth
  * Gerencia login, logout e estado do usuário
  */
 export const useAuth = () => {
@@ -18,46 +19,66 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Inicializa o Netlify Identity
-    netlifyIdentity.init();
+    // Verifica sessão atual
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ? mapSupabaseUser(session.user) : null);
+      setLoading(false);
+    });
 
-    // Verifica se já existe um usuário logado
-    const currentUser = netlifyIdentity.currentUser();
-    if (currentUser) {
-      setUser(currentUser as User);
-    }
-    setLoading(false);
+    // Escuta mudanças de autenticação
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? mapSupabaseUser(session.user) : null);
+    });
 
-    // Event listeners para mudanças de autenticação
-    const handleLogin = (user: any) => {
-      setUser(user as User);
-      netlifyIdentity.close();
-    };
-
-    const handleLogout = () => {
-      setUser(null);
-    };
-
-    netlifyIdentity.on('login', handleLogin);
-    netlifyIdentity.on('logout', handleLogout);
-
-    // Cleanup
-    return () => {
-      netlifyIdentity.off('login', handleLogin);
-      netlifyIdentity.off('logout', handleLogout);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = () => {
-    netlifyIdentity.open('login');
+  /**
+   * Mapeia usuário do Supabase para nosso formato
+   */
+  const mapSupabaseUser = (supabaseUser: SupabaseUser): User => {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      user_metadata: supabaseUser.user_metadata,
+    };
   };
 
-  const signup = () => {
-    netlifyIdentity.open('signup');
+  /**
+   * Login com email e senha
+   */
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
   };
 
-  const logout = () => {
-    netlifyIdentity.logout();
+  /**
+   * Signup (não será usado - sistema invite-only)
+   * Mantido apenas para compatibilidade
+   */
+  const signup = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
+  };
+
+  /**
+   * Logout
+   */
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   return {
