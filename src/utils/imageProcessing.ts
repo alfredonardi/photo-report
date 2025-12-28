@@ -65,47 +65,51 @@ export const imageUtils = {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.src = imageDataUrl;
-      
+
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          
+
           if (!ctx) {
             reject(new Error('Não foi possível obter contexto do canvas'));
             return;
           }
 
-          // Resize image if it's too large
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 1024;
+          // Usa dimensões originais da imagem (sem redimensionar)
+          const width = img.width;
+          const height = img.height;
 
-          if (width > maxDimension || height > maxDimension) {
-            const ratio = maxDimension / Math.max(width, height);
-            width = Math.floor(width * ratio);
-            height = Math.floor(height * ratio);
-          }
-
+          // Define tamanho do canvas baseado na rotação
           if (rotation === 90 || rotation === 270) {
+            // Para rotações de 90° e 270°, inverte largura e altura
             canvas.width = height;
             canvas.height = width;
           } else {
+            // Para 0° e 180°, mantém dimensões
             canvas.width = width;
             canvas.height = height;
           }
 
+          // Limpa o canvas com branco (evita faixas pretas)
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Aplica rotação
           ctx.translate(canvas.width / 2, canvas.height / 2);
           ctx.rotate((rotation * Math.PI) / 180);
+
+          // Desenha a imagem centralizada
           ctx.drawImage(img, -width / 2, -height / 2, width, height);
 
-          resolve(canvas.toDataURL('image/jpeg', 0.5));
+          // Qualidade 0.85 para reduzir perda em múltiplas rotações
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
         } catch (error) {
           console.error('Erro ao rotacionar imagem:', error);
           reject(error);
         }
       };
-      
+
       img.onerror = (error) => {
         console.error('Erro ao carregar imagem para rotação:', error);
         reject(new Error('Falha ao carregar a imagem para rotação'));
