@@ -76,34 +76,30 @@ export const imageUtils = {
             return;
           }
 
-          // Usa dimensões originais da imagem (sem redimensionar)
           const width = img.width;
           const height = img.height;
 
           // Define tamanho do canvas baseado na rotação
+          // Para 90° e 270°, inverte as dimensões
           if (rotation === 90 || rotation === 270) {
-            // Para rotações de 90° e 270°, inverte largura e altura
             canvas.width = height;
             canvas.height = width;
           } else {
-            // Para 0° e 180°, mantém dimensões
             canvas.width = width;
             canvas.height = height;
           }
 
-          // Limpa o canvas com branco (evita faixas pretas)
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // Aplica rotação
+          // Move a origem para o centro do canvas
           ctx.translate(canvas.width / 2, canvas.height / 2);
+
+          // Rotaciona
           ctx.rotate((rotation * Math.PI) / 180);
 
           // Desenha a imagem centralizada
           ctx.drawImage(img, -width / 2, -height / 2, width, height);
 
-          // Qualidade 0.85 para reduzir perda em múltiplas rotações
-          resolve(canvas.toDataURL('image/jpeg', 0.85));
+          // Qualidade 0.9 para manter qualidade
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
         } catch (error) {
           console.error('Erro ao rotacionar imagem:', error);
           reject(error);
