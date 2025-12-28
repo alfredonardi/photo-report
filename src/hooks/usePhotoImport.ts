@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { showToast } from '../utils/toast';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -107,18 +108,16 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
         // Mostra resumo
         if (errors.length > 0) {
           const successCount = totalFiles - errors.length;
-          alert(
-            `Importação concluída:\n` +
-            `✓ ${successCount} foto(s) importada(s)\n` +
-            `✗ ${errors.length} erro(s):\n\n` +
-            errors.join('\n')
+          showToast.warning(
+            `Importação concluída: ${successCount} foto(s) importada(s), ${errors.length} erro(s). Veja o console para detalhes.`
           );
+          console.warn('Erros na importação:', errors);
         } else {
-          alert(`✓ ${totalFiles} foto(s) importada(s) com sucesso!`);
+          showToast.success(`${totalFiles} foto(s) importada(s) com sucesso!`);
         }
       } catch (error) {
         console.error('Error importing photos:', error);
-        alert('Erro inesperado durante importação. Tente novamente.');
+        showToast.error('Erro inesperado durante importação. Tente novamente.');
       } finally {
         setIsImporting(false);
         setProgress(null);

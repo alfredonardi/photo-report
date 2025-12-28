@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Camera } from 'lucide-react';
+import { showToast } from '../utils/toast';
 
 interface CameraButtonProps {
   onPhotoCapture: (photoData: string) => Promise<void>;
@@ -24,13 +25,13 @@ export const CameraButton: React.FC<CameraButtonProps> = ({
           await onPhotoCapture(e.target.result);
         } catch (error) {
           console.error('Error capturing photo:', error);
-          alert('Erro ao capturar foto. Tente novamente.');
+          showToast.error('Erro ao capturar foto. Tente novamente.');
         }
       }
     };
 
     reader.onerror = () => {
-      alert('Erro ao ler arquivo da câmera.');
+      showToast.error('Erro ao ler arquivo da câmera.');
     };
 
     reader.readAsDataURL(file);

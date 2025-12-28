@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
 import { CameraButton } from './components/CameraButton';
@@ -11,6 +12,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAuth } from './hooks/useAuth';
 import { pdfGenerator } from './utils/pdfGenerator';
 import { confirmations } from './utils/confirmations';
+import { showToast } from './utils/toast';
 import logo from './assets/logo.jpg';
 
 function App() {
@@ -37,17 +39,17 @@ function App() {
   const handleGeneratePDF = async () => {
     // Validações
     if (!boNumber || boNumber.length < 9) {
-      alert('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
+      showToast.warning('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
       return;
     }
 
     if (!version) {
-      alert('Por favor, selecione a versão do relatório antes de continuar.');
+      showToast.warning('Por favor, selecione a versão do relatório antes de continuar.');
       return;
     }
 
     if (!selectedGroup) {
-      alert('Por favor, selecione o grupo antes de continuar.');
+      showToast.warning('Por favor, selecione o grupo antes de continuar.');
       return;
     }
 
@@ -64,10 +66,10 @@ function App() {
         logo,
         userEmail: user?.email, // Passa email do usuário para rastreabilidade
       });
-      alert('✓ PDF gerado com sucesso!');
+      showToast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('✗ Erro ao gerar PDF. Tente novamente.');
+      showToast.error('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -89,10 +91,10 @@ function App() {
         setSelectedGroup('');
         setBoNumber('');
         setVersion('');
-        alert('✓ Novo relatório iniciado!');
+        showToast.success('Novo relatório iniciado!');
       } catch (error) {
         console.error('Error clearing report:', error);
-        alert('✗ Erro ao limpar relatório. Tente novamente.');
+        showToast.error('Erro ao limpar relatório. Tente novamente.');
       }
     }
   };
@@ -117,6 +119,9 @@ function App() {
   // Se estiver autenticado, mostra o app normalmente
   return (
     <div className="app-container">
+      {/* Toast Notifications */}
+      <Toaster />
+
       {/* Header de autenticação */}
       {user && <AuthHeader user={user} onLogout={logout} />}
 
