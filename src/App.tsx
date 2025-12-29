@@ -231,7 +231,7 @@ function App() {
       <div className="flex flex-col gap-3 mb-5">
         <input
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           multiple
           id="import-input"
           className="hidden"
