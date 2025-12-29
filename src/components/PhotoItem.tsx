@@ -76,12 +76,13 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
       <div
         className="photo-image-container"
         style={{
-          // Ajusta altura do container para acomodar imagem rotacionada
-          minHeight: isRotatedPortrait ? '400px' : 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          // Container responsivo com aspect ratio que se adapta
+          position: 'relative',
+          width: '100%',
+          // Aspect ratio: landscape normal, portrait quando rotacionado
+          paddingBottom: isRotatedPortrait ? '133.33%' : '75%',
           overflow: 'hidden',
+          backgroundColor: '#f5f5f5',
         }}
       >
         <img
@@ -89,11 +90,18 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
           alt={`Foto ${photo.position}`}
           className="photo-item"
           style={{
-            transform: `rotate(${rotation}deg)`,
+            // Posiciona absolutamente e centraliza
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            // Combina translate (para centralizar) + rotate
+            transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
             transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            // Ajusta escala quando rotacionada para caber no container
-            maxWidth: isRotatedPortrait ? '70%' : '100%',
-            maxHeight: isRotatedPortrait ? '400px' : 'auto',
+            // Dimensões adaptativas
+            width: isRotatedPortrait ? 'auto' : '100%',
+            height: isRotatedPortrait ? '100%' : 'auto',
+            maxWidth: isRotatedPortrait ? '75%' : '100%',
+            maxHeight: isRotatedPortrait ? '75%' : '100%',
             objectFit: 'contain',
           }}
         />
