@@ -17,19 +17,23 @@ export const photoService = {
   /**
    * Adiciona uma nova foto ao banco
    * Calcula automaticamente a próxima posição disponível
+   *
+   * @param photoData - Imagem já processada (comprimida com compressOnce)
    */
   async addPhoto(photoData: string): Promise<number> {
     const db = await dbPromise;
     const photos = await this.getAllPhotos();
-    const maxPosition = photos.length > 0 
+    const maxPosition = photos.length > 0
       ? Math.max(...photos.map(p => p.position))
       : 0;
 
     const newPhoto: Omit<Photo, 'id'> = {
-      photo: photoData,
+      photo: photoData, // Mantido para compatibilidade
+      originalPhoto: photoData, // Nova estrutura: imagem comprimida UMA VEZ
       description: '',
       position: maxPosition + 1,
-      rotation: 0,
+      rotation: 0, // Mantido para compatibilidade
+      rotationMetadata: 0, // Nova estrutura: apenas metadata (0, 90, 180, 270)
     };
 
     return db.add('photos', newPhoto as Photo);
