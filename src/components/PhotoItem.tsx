@@ -67,16 +67,34 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     adjustTextareaHeight();
   }, [photo.description]);
 
+  // Calcula se a imagem está rotacionada em 90° ou 270° (portrait)
+  const rotation = photo.rotationMetadata || photo.rotation || 0;
+  const isRotatedPortrait = rotation === 90 || rotation === 270;
+
   return (
     <div className="photo-item-container">
-      <div className="photo-image-container">
+      <div
+        className="photo-image-container"
+        style={{
+          // Ajusta altura do container para acomodar imagem rotacionada
+          minHeight: isRotatedPortrait ? '400px' : 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+        }}
+      >
         <img
           src={photo.originalPhoto || photo.photo}
           alt={`Foto ${photo.position}`}
           className="photo-item"
           style={{
-            transform: `rotate(${photo.rotationMetadata || photo.rotation || 0}deg)`,
+            transform: `rotate(${rotation}deg)`,
             transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            // Ajusta escala quando rotacionada para caber no container
+            maxWidth: isRotatedPortrait ? '70%' : '100%',
+            maxHeight: isRotatedPortrait ? '400px' : 'auto',
+            objectFit: 'contain',
           }}
         />
       </div>
