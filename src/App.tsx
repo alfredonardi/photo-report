@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
 import { CameraButton } from './components/CameraButton';
 import { AppFooter } from './components/AppFooter';
 import { Login } from './components/Login';
+import { SetPassword } from './components/SetPassword';
 import { AuthHeader } from './components/AuthHeader';
 import { usePhotos } from './hooks/usePhotos';
 import { usePhotoImport } from './hooks/usePhotoImport';
@@ -13,6 +14,7 @@ import { useAuth } from './hooks/useAuth';
 import { pdfGenerator } from './utils/pdfGenerator';
 import { confirmations } from './utils/confirmations';
 import { showToast } from './utils/toast';
+import { supabase } from './services/supabase/config';
 import logo from './assets/logo.jpg';
 
 function App() {
@@ -21,6 +23,7 @@ function App() {
   const [boNumber, setBoNumber] = useLocalStorage('boNumber', '');
   const [version, setVersion] = useLocalStorage('version', '');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
 
   const {
     photos,
@@ -35,6 +38,52 @@ function App() {
   } = usePhotos();
 
   const { handleImportPhotos, isImporting, progress } = usePhotoImport(addPhoto);
+
+  /**
+   * Verifica se usuário precisa definir senha
+   * Acontece quando aceita convite do Supabase
+   */
+  useEffect(() => {
+    const checkPasswordSetup = async () => {
+      if (!user) return;
+
+      try {
+        // Pega os dados do usuário
+        const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+
+        if (error) throw error;
+        if (!currentUser) return;
+
+        // Verifica se a senha foi definida
+        const passwordSet = currentUser.user_metadata?.password_set;
+
+        // Se veio de convite (via invite) e não definiu senha ainda
+        const isInviteUser = currentUser.app_metadata?.provider === 'email' &&
+                             currentUser.invited_at !== null;
+
+        if (isInviteUser && passwordSet !== true) {
+          console.log('👤 Usuário veio de convite - precisa definir senha');
+          setNeedsPasswordSetup(true);
+        } else {
+          setNeedsPasswordSetup(false);
+        }
+      } catch (error) {
+        console.error('Error checking password setup:', error);
+        // Em caso de erro, não bloqueia o acesso
+        setNeedsPasswordSetup(false);
+      }
+    };
+
+    checkPasswordSetup();
+  }, [user]);
+
+  /**
+   * Callback quando usuário define a senha
+   */
+  const handlePasswordSet = () => {
+    setNeedsPasswordSetup(false);
+    showToast.success('Bem-vindo ao sistema! 🎉');
+  };
 
   const handleGeneratePDF = async () => {
     // Validações
@@ -114,6 +163,16 @@ function App() {
   // Se não estiver autenticado, mostra tela de login
   if (!isAuthenticated) {
     return <Login onLogin={login} />;
+  }
+
+  // Se usuário precisa definir senha (veio de convite)
+  if (needsPasswordSetup) {
+    return (
+      <>
+        <Toaster />
+        <SetPassword onPasswordSet={handlePasswordSet} />
+      </>
+    );
   }
 
   // Se estiver autenticado, mostra o app normalmente
