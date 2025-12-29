@@ -1,15 +1,16 @@
 import React, { useRef } from 'react';
 import { Camera } from 'lucide-react';
 import { showToast } from '../utils/toast';
+import { imageUtils } from '../utils/imageProcessing';
 
 interface CameraButtonProps {
   onPhotoCapture: (photoData: string) => Promise<void>;
   disabled?: boolean;
 }
 
-export const CameraButton: React.FC<CameraButtonProps> = ({ 
-  onPhotoCapture, 
-  disabled = false 
+export const CameraButton: React.FC<CameraButtonProps> = ({
+  onPhotoCapture,
+  disabled = false
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -17,28 +18,53 @@ export const CameraButton: React.FC<CameraButtonProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
-      if (typeof e.target?.result === 'string') {
+    try {
+      // Detecta se é HEIC/HEIF e converte para JPEG
+      const isHeic = file.type.includes('heic') ||
+                     file.type.includes('heif') ||
+                     file.name.toLowerCase().endsWith('.heic') ||
+                     file.name.toLowerCase().endsWith('.heif');
+
+      let fileToRead: Blob = file;
+
+      if (isHeic) {
+        showToast.info('Convertendo imagem HEIC...');
         try {
-          await onPhotoCapture(e.target.result);
+          fileToRead = await imageUtils.convertHeicToJpeg(file);
+          showToast.success('Imagem convertida com sucesso!');
         } catch (error) {
-          console.error('Error capturing photo:', error);
-          showToast.error('Erro ao capturar foto. Tente novamente.');
+          console.error('Erro ao converter HEIC:', error);
+          showToast.error('Erro ao converter imagem HEIC. Tente outro formato.');
+          return;
         }
       }
-    };
 
-    reader.onerror = () => {
-      showToast.error('Erro ao ler arquivo da câmera.');
-    };
+      const reader = new FileReader();
 
-    reader.readAsDataURL(file);
+      reader.onload = async (e) => {
+        if (typeof e.target?.result === 'string') {
+          try {
+            await onPhotoCapture(e.target.result);
+          } catch (error) {
+            console.error('Error capturing photo:', error);
+            showToast.error('Erro ao capturar foto. Tente novamente.');
+          }
+        }
+      };
 
-    // Reset input value to allow capturing the same image again
-    if (inputRef.current) {
-      inputRef.current.value = '';
+      reader.onerror = () => {
+        showToast.error('Erro ao ler arquivo da câmera.');
+      };
+
+      reader.readAsDataURL(fileToRead);
+    } catch (error) {
+      console.error('Error processing file:', error);
+      showToast.error('Erro ao processar imagem.');
+    } finally {
+      // Reset input value to allow capturing the same image again
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
     }
   };
 
@@ -47,7 +73,7 @@ export const CameraButton: React.FC<CameraButtonProps> = ({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         capture="environment"
         id="camera-input"
         className="hidden"

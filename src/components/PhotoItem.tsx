@@ -71,16 +71,21 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
   const rotation = photo.rotationMetadata || photo.rotation || 0;
   const isRotatedPortrait = rotation === 90 || rotation === 270;
 
+  // Calcula scale para imagem rotacionada caber no container
+  // Para 4:3 rotacionado 90°, precisa scale de 3/4 = 0.75
+  const rotationScale = isRotatedPortrait ? 0.75 : 1;
+
   return (
     <div className="photo-item-container">
       <div
         className="photo-image-container"
         style={{
-          // Container responsivo com aspect ratio que se adapta
-          position: 'relative',
+          // Container SEMPRE landscape (4:3) - não muda com rotação
           width: '100%',
-          // Aspect ratio: landscape normal, portrait quando rotacionado
-          paddingBottom: isRotatedPortrait ? '133.33%' : '75%',
+          aspectRatio: '4 / 3',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           overflow: 'hidden',
           backgroundColor: '#f5f5f5',
         }}
@@ -90,18 +95,12 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
           alt={`Foto ${photo.position}`}
           className="photo-item"
           style={{
-            // Posiciona absolutamente e centraliza
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            // Combina translate (para centralizar) + rotate
-            transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+            // Rotação + scale para caber no container
+            transform: `rotate(${rotation}deg) scale(${rotationScale})`,
             transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            // Dimensões adaptativas
-            width: isRotatedPortrait ? 'auto' : '100%',
-            height: isRotatedPortrait ? '100%' : 'auto',
-            maxWidth: isRotatedPortrait ? '75%' : '100%',
-            maxHeight: isRotatedPortrait ? '75%' : '100%',
+            // Imagem preenche o container mantendo proporção
+            width: '100%',
+            height: '100%',
             objectFit: 'contain',
           }}
         />
