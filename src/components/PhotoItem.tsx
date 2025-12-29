@@ -71,9 +71,13 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     <div className="photo-item-container">
       <div className="photo-image-container">
         <img
-          src={photo.photo}
+          src={photo.originalPhoto || photo.photo}
           alt={`Foto ${photo.position}`}
           className="photo-item"
+          style={{
+            transform: `rotate(${photo.rotationMetadata || photo.rotation || 0}deg)`,
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         />
       </div>
       <div className="rotation-selector">

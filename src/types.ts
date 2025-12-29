@@ -1,9 +1,11 @@
 export interface Photo {
   id: number;
-  photo: string;
+  photo: string; // Mantido para compatibilidade - será igual a originalPhoto
+  originalPhoto: string; // Imagem comprimida UMA VEZ com qualidade alta
   description: string;
   position: number;
-  rotation: number;
+  rotation: number; // Mantido para compatibilidade - será igual a rotationMetadata
+  rotationMetadata: number; // Apenas o ângulo: 0, 90, 180, 270
 }
 
 export interface PDFConfig {

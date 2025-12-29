@@ -36,25 +36,25 @@ export const usePhotos = () => {
 
   /**
    * Adiciona uma nova foto
-   * FIX: Melhora tratamento de erro e não joga exceção desnecessária
+   * Comprime UMA VEZ com qualidade alta (0.95)
    */
   const addPhoto = useCallback(async (photoData: string): Promise<void> => {
     try {
       setError(null);
-      
-      // Processa imagem para formato landscape e redimensiona
-      const resizedPhoto = await imageUtils.resizeAndRotateToLandscape(photoData);
-      
+
+      // Comprime UMA ÚNICA VEZ com qualidade alta
+      // Essa será a imagem "original" armazenada
+      const compressedPhoto = await imageUtils.compressOnce(photoData, 1600, 1200, 0.95);
+
       // Adiciona ao banco
-      await photoService.addPhoto(resizedPhoto);
-      
+      await photoService.addPhoto(compressedPhoto);
+
       // Recarrega lista
       await loadPhotos();
     } catch (err) {
       const errorMessage = 'Não foi possível adicionar a foto. Tente novamente com outra imagem.';
       setError(errorMessage);
       console.error('Error adding photo:', err);
-      // FIX: Não joga erro aqui, apenas loga - o componente já trata o erro via state
     }
   }, [loadPhotos]);
 
@@ -134,11 +134,12 @@ export const usePhotos = () => {
   }, [photos, loadPhotos]);
 
   /**
-   * Rotaciona uma foto
-   * FIX: Adiciona validação de rotação
+   * Rotaciona uma foto (APENAS METADATA - SEM PROCESSAMENTO!)
+   * A rotação é aplicada via CSS transform no componente
+   * ZERO degradação de qualidade, não importa quantas vezes rotacionar
    */
   const rotatePhoto = useCallback(async (id: number, newRotation: number): Promise<void> => {
-    // FIX: Valida valores de rotação
+    // Valida valores de rotação
     if (![0, 90, 180, 270].includes(newRotation)) {
       console.error('Rotação inválida:', newRotation);
       return;
@@ -146,34 +147,41 @@ export const usePhotos = () => {
 
     try {
       setError(null);
-      
+
       const photo = photos.find(p => p.id === id);
       if (!photo) {
         throw new Error('Foto não encontrada');
       }
 
-      // FIX: Evita processamento desnecessário se rotação é a mesma
-      if (photo.rotation === newRotation) {
+      // Evita atualização desnecessária se rotação é a mesma
+      if (photo.rotationMetadata === newRotation) {
         return;
       }
 
-      // Calcula diferença de rotação
-      const rotationDiff = newRotation - photo.rotation;
-      
-      // Aplica rotação física na imagem
-      const rotatedImage = await imageUtils.rotateImage(photo.photo, rotationDiff);
+      // Atualização otimista da UI
+      setPhotos(prev => prev.map(p =>
+        p.id === id
+          ? {
+              ...p,
+              rotationMetadata: newRotation,
+              rotation: newRotation, // Mantém compatibilidade
+            }
+          : p
+      ));
 
-      // Atualiza banco com nova imagem e rotação
-      await photoService.updatePhoto(id, { 
-        photo: rotatedImage, 
-        rotation: newRotation 
+      // Atualiza APENAS metadata no banco (ZERO processamento de imagem!)
+      await photoService.updatePhoto(id, {
+        rotationMetadata: newRotation,
+        rotation: newRotation, // Mantém compatibilidade
       });
-      
-      await loadPhotos();
+
+      console.log(`✅ Foto ${id} rotacionada para ${newRotation}° (metadata only - zero perda!)`);
     } catch (err) {
       const errorMessage = 'Não foi possível rotacionar a foto. Tente novamente.';
       setError(errorMessage);
       console.error('Error rotating photo:', err);
+      // Recarrega em caso de erro
+      await loadPhotos();
     }
   }, [photos, loadPhotos]);
 

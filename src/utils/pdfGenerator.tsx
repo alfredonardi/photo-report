@@ -4,6 +4,7 @@ import { Photo } from '../types';
 import { PDFDocument } from './pdf/PDFDocument';
 import { formatters } from './formatters';
 import { pdfUploadService } from '../services/supabase/pdfUploadService';
+import { imageUtils } from './imageProcessing';
 
 interface PDFConfig {
   boNumber: string;
@@ -37,13 +38,44 @@ export const pdfGenerator = {
       // Sort photos by position before generating PDF
       const sortedPhotos = [...photos].sort((a, b) => a.position - b.position);
 
+      // PROCESSA FOTOS: Aplica rotação física UMA VEZ da imagem original
+      console.log('🔄 Processando fotos para o PDF...');
+      const processedPhotos = await Promise.all(
+        sortedPhotos.map(async (photo) => {
+          const rotationAngle = photo.rotationMetadata || photo.rotation || 0;
+
+          // Se não precisa rotacionar, usa a imagem original direto
+          if (rotationAngle === 0) {
+            return {
+              ...photo,
+              photo: photo.originalPhoto || photo.photo,
+            };
+          }
+
+          // Aplica rotação física UMA VEZ da imagem original (quality 0.85 para PDF)
+          console.log(`  📐 Rotacionando foto ${photo.position} em ${rotationAngle}° para o PDF...`);
+          const rotatedImage = await imageUtils.rotatePhysically(
+            photo.originalPhoto || photo.photo,
+            rotationAngle,
+            0.85 // Quality otimizada para PDF (balanço tamanho/qualidade)
+          );
+
+          return {
+            ...photo,
+            photo: rotatedImage,
+          };
+        })
+      );
+
+      console.log('✅ Fotos processadas com sucesso!');
+
       // Generate PDF using react-pdf
       const blob = await pdf(
         <PDFDocument
           boNumber={config.boNumber}
           version={config.version}
           selectedGroup={config.selectedGroup}
-          photos={sortedPhotos}
+          photos={processedPhotos}
           logo={config.logo}
         />
       ).toBlob();
