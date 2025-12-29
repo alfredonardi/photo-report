@@ -6,9 +6,48 @@
  * - Guardar rotação como metadata (0, 90, 180, 270)
  * - Aplicar rotação física apenas no PDF
  * - ZERO degradação em rotações múltiplas
+ * - Suporta HEIC/HEIF (conversão automática para JPEG)
  */
 
+import heic2any from 'heic2any';
+
 export const imageUtils = {
+  /**
+   * Converte imagem HEIC/HEIF para JPEG
+   *
+   * @param file - Arquivo HEIC
+   * @returns Blob JPEG
+   */
+  async convertHeicToJpeg(file: File): Promise<Blob> {
+    try {
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.95,
+      });
+
+      // heic2any pode retornar array ou blob único
+      return Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+    } catch (error) {
+      console.error('Erro ao converter HEIC:', error);
+      throw new Error('Falha ao converter imagem HEIC. Tente outro formato.');
+    }
+  },
+
+  /**
+   * Converte File ou Blob para base64
+   *
+   * @param blob - Arquivo ou Blob
+   * @returns String base64
+   */
+  async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  },
   /**
    * Comprime e redimensiona imagem UMA ÚNICA VEZ
    * Usado ao importar/capturar foto
@@ -193,15 +232,30 @@ export const imageUtils = {
   /**
    * Valida se um arquivo é uma imagem válida
    * Verifica tipo MIME e magic numbers (primeiros bytes)
+   * Suporta: JPEG, PNG, WebP, HEIC/HEIF
    *
    * @param file - Arquivo a validar
    * @returns true se é imagem válida
    */
   async validateImageFile(file: File): Promise<boolean> {
-    // Verifica extensão/tipo MIME
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      throw new Error('Tipo de arquivo não suportado. Use JPEG, PNG ou WebP.');
+    // Verifica extensão/tipo MIME (incluindo HEIC/HEIF)
+    const validTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+      'image/heic-sequence',
+      'image/heif-sequence',
+    ];
+
+    // HEIC pode vir sem MIME type correto, então verifica extensão também
+    const fileName = file.name.toLowerCase();
+    const isHeicByExtension = fileName.endsWith('.heic') || fileName.endsWith('.heif');
+
+    if (!validTypes.includes(file.type) && !isHeicByExtension) {
+      throw new Error('Tipo de arquivo não suportado. Use JPEG, PNG, WebP ou HEIC.');
     }
 
     // Verifica tamanho (máx 10 MB)
@@ -236,7 +290,10 @@ export const imageUtils = {
         bytes[10] === 0x42 &&
         bytes[11] === 0x50;
 
-      if (!isJPEG && !isPNG && !isWebP) {
+      // HEIC/HEIF: Verifica por 'ftyp' na posição 4-7 e 'heic'/'mif1' depois
+      const hasHEICSignature = isHeicByExtension || file.type.includes('heic') || file.type.includes('heif');
+
+      if (!isJPEG && !isPNG && !isWebP && !hasHEICSignature) {
         throw new Error('Arquivo corrompido ou não é uma imagem válida');
       }
 
