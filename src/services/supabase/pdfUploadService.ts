@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './config';
+import type { PDFReportRecord } from '../../types';
 
 /**
  * Interface para metadados do PDF
@@ -97,7 +98,7 @@ export const pdfUploadService = {
    * Lista todos os PDFs de um usuário
    * Útil para implementar tela de histórico futuramente
    */
-  async listUserPDFs(userEmail: string): Promise<any[]> {
+  async listUserPDFs(userEmail: string): Promise<PDFReportRecord[]> {
     try {
       if (!isSupabaseConfigured()) {
         return [];
@@ -124,7 +125,7 @@ export const pdfUploadService = {
   /**
    * Busca PDFs por número de BO
    */
-  async searchByBO(boNumber: string): Promise<any[]> {
+  async searchByBO(boNumber: string): Promise<PDFReportRecord[]> {
     try {
       if (!isSupabaseConfigured()) {
         return [];

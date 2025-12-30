@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase/config';
 import { showToast } from '../utils/toast';
+import { AuthError } from '../types';
 import logo from '../assets/logo.jpg';
 
 interface SetPasswordProps {
@@ -110,9 +111,10 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
         onPasswordSet();
       }, 1000);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error setting password:', error);
-      showToast.error('Erro ao definir senha: ' + (error.message || 'Tente novamente'));
+      const authError = error as AuthError;
+      showToast.error('Erro ao definir senha: ' + (authError.message || 'Tente novamente'));
     } finally {
       setIsLoading(false);
     }

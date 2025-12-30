@@ -1,6 +1,6 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
-import { Photo } from '../types';
+import { Photo, ShareError } from '../types';
 import { PDFDocument } from './pdf/PDFDocument';
 import { formatters } from './formatters';
 import { pdfUploadService } from '../services/supabase/pdfUploadService';
@@ -118,14 +118,15 @@ export const pdfGenerator = {
             });
             return; // Sucesso! Compartilhou
           }
-        } catch (shareError: any) {
+        } catch (shareError) {
+          const error = shareError as ShareError;
           // Se usuário cancelou, faz download direto
-          if (shareError.name === 'AbortError') {
+          if (error.name === 'AbortError') {
             console.log('Compartilhamento cancelado, fazendo download...');
             // Continua para o download abaixo
           } else {
             // Outro erro, continua para o download
-            console.warn('Erro ao compartilhar, fazendo download:', shareError);
+            console.warn('Erro ao compartilhar, fazendo download:', error);
           }
         }
       }

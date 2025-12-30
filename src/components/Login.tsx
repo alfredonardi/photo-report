@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { showToast } from '../utils/toast';
+import { AuthError } from '../types';
 import logo from '../assets/logo.jpg';
 
 interface LoginProps {
-  onLogin: (email: string, password: string) => Promise<any>;
+  onLogin: (email: string, password: string) => Promise<void>;
 }
 
 /**
@@ -27,13 +28,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       await onLogin(email, password);
       showToast.success('Login realizado com sucesso!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
 
+      const authError = error as AuthError;
+
       // Mensagens de erro amigáveis
-      if (error.message?.includes('Invalid login credentials')) {
+      if (authError.message?.includes('Invalid login credentials')) {
         showToast.error('Email ou senha incorretos');
-      } else if (error.message?.includes('Email not confirmed')) {
+      } else if (authError.message?.includes('Email not confirmed')) {
         showToast.error('Email não confirmado. Verifique sua caixa de entrada.');
       } else {
         showToast.error('Erro ao fazer login. Tente novamente.');
