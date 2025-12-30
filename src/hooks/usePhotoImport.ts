@@ -42,6 +42,14 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
       };
     }
 
+    // Valida suporte a HEIC no navegador atual
+    if (isHeicByExtension && !imageUtils.isHeicSupported()) {
+      return {
+        valid: false,
+        error: `${file.name}: HEIC não suportado neste navegador. Use o app no celular ou converta para JPEG primeiro.`,
+      };
+    }
+
     // Valida tamanho
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
