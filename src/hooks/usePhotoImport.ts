@@ -133,8 +133,9 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
             const photoData = await processFile(file);
             await onPhotoAdd(photoData);
           } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
             console.error(`Error processing ${file.name}:`, error);
-            errors.push(`Erro ao processar: ${file.name}`);
+            errors.push(`${file.name}: ${errorMessage}`);
           }
         }
 
@@ -144,7 +145,10 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
           showToast.warning(
             `Importação concluída: ${successCount} foto(s) importada(s), ${errors.length} erro(s). Veja o console para detalhes.`
           );
-          console.warn('Erros na importação:', errors);
+          console.warn('Erros na importação:');
+          errors.forEach((error, index) => {
+            console.error(`  ${index + 1}. ${error}`);
+          });
         } else {
           showToast.success(`${totalFiles} foto(s) importada(s) com sucesso!`);
         }
