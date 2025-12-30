@@ -162,7 +162,12 @@ function App() {
 
   // Se não estiver autenticado, mostra tela de login
   if (!isAuthenticated) {
-    return <Login onLogin={login} />;
+    return (
+      <>
+        <Toaster />
+        <Login onLogin={login} />
+      </>
+    );
   }
 
   // Se usuário precisa definir senha (veio de convite)
