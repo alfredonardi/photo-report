@@ -13,6 +13,22 @@ import heic2any from 'heic2any';
 
 export const imageUtils = {
   /**
+   * Detecta se o navegador/dispositivo atual suporta conversão de HEIC
+   *
+   * @returns true se HEIC é suportado (geralmente mobile), false caso contrário
+   */
+  isHeicSupported(): boolean {
+    // HEIC funciona melhor em dispositivos móveis
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // Safari no Mac também suporta nativamente
+    const isSafariMac = /Macintosh/.test(navigator.userAgent) &&
+                        /Safari/.test(navigator.userAgent) &&
+                        !/Chrome/.test(navigator.userAgent);
+
+    return isMobile || isSafariMac;
+  },
+  /**
    * Converte imagem HEIC/HEIF para JPEG
    *
    * @param file - Arquivo HEIC
@@ -30,6 +46,17 @@ export const imageUtils = {
       return Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
     } catch (error) {
       console.error('Erro ao converter HEIC:', error);
+
+      // Mensagem específica para desktop
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobile) {
+        throw new Error(
+          `Conversão de HEIC não suportada neste navegador desktop. ` +
+          `Alternativas: 1) Use o app no celular, 2) Converta para JPEG antes de importar, ` +
+          `3) Use navegador Safari no Mac`
+        );
+      }
+
       throw new Error('Falha ao converter imagem HEIC. Tente outro formato.');
     }
   },

@@ -55,6 +55,8 @@ export const usePhotos = () => {
       const errorMessage = 'Não foi possível adicionar a foto. Tente novamente com outra imagem.';
       setError(errorMessage);
       console.error('Error adding photo:', err);
+      // Propaga erro para que usePhotoImport possa detectar
+      throw err;
     }
   }, [loadPhotos]);
 
