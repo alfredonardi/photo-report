@@ -36,28 +36,37 @@ export const imageUtils = {
    */
   async convertHeicToJpeg(file: File): Promise<Blob> {
     try {
+      console.log(`🔄 Convertendo HEIC para JPEG: ${file.name}`);
+
       const convertedBlob = await heic2any({
         blob: file,
         toType: 'image/jpeg',
         quality: 0.95,
       });
 
+      console.log(`✅ HEIC convertido com sucesso: ${file.name}`);
+
       // heic2any pode retornar array ou blob único
       return Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
     } catch (error) {
-      console.error('Erro ao converter HEIC:', error);
+      console.error('❌ Erro ao converter HEIC:', error);
 
-      // Mensagem específica para desktop
+      // Mensagem específica baseada no dispositivo
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (!isMobile) {
+      const isSafariMac = /Macintosh/.test(navigator.userAgent) &&
+                          /Safari/.test(navigator.userAgent) &&
+                          !/Chrome/.test(navigator.userAgent);
+
+      if (!isMobile && !isSafariMac) {
         throw new Error(
-          `Conversão de HEIC não suportada neste navegador desktop. ` +
-          `Alternativas: 1) Use o app no celular, 2) Converta para JPEG antes de importar, ` +
-          `3) Use navegador Safari no Mac`
+          `Não foi possível converter ${file.name}. ` +
+          `Alternativas: 1) Use o app no celular para importar HEIC, ` +
+          `2) Converta para JPEG em https://heictojpg.com antes de importar, ` +
+          `3) Use Safari no Mac (se disponível)`
         );
       }
 
-      throw new Error('Falha ao converter imagem HEIC. Tente outro formato.');
+      throw new Error(`Falha ao converter ${file.name}. Tente outro formato ou converta antes.`);
     }
   },
 
