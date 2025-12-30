@@ -36,3 +36,28 @@ export interface PDFDimensions {
   spacingBetweenImageAndDescription: number;
   lineHeight: number;
 }
+
+export interface PDFReportRecord {
+  id?: string;
+  file_path: string;
+  file_name: string;
+  file_size: number;
+  bo_number: string;
+  version: string;
+  group_number: string;
+  photo_count: number;
+  generated_by: string;
+  generated_at: string;
+  created_at?: string;
+}
+
+export interface AuthError extends Error {
+  message: string;
+  status?: number;
+  code?: string;
+}
+
+export interface ShareError extends Error {
+  name: string;
+  message: string;
+}

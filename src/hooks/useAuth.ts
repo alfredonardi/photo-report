@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase/config';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User as SupabaseUser, AuthResponse } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
@@ -49,7 +49,7 @@ export const useAuth = () => {
   /**
    * Login com email e senha
    */
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<AuthResponse> => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -63,7 +63,7 @@ export const useAuth = () => {
    * Signup (não será usado - sistema invite-only)
    * Mantido apenas para compatibilidade
    */
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string): Promise<AuthResponse> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -76,7 +76,7 @@ export const useAuth = () => {
   /**
    * Logout
    */
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
