@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Photo } from '../services/database/photoService';
 import { PositionSelector } from './PositionSelector';
 import { RotateCw, RotateCcw } from 'lucide-react';
@@ -21,6 +21,8 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
   onRemove,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [localDescription, setLocalDescription] = useState(photo.description);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleRemove = () => {
     const confirmRemoval = window.confirm(
@@ -32,9 +34,22 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (e.target.value.length <= 78) {
-      onDescriptionChange(photo.id, e.target.value);
+    const newValue = e.target.value;
+
+    if (newValue.length <= 78) {
+      // Atualiza o estado local imediatamente (sem delay)
+      setLocalDescription(newValue);
       adjustTextareaHeight();
+
+      // Limpa o timer anterior se existir
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Cria um novo timer para sincronizar com o banco após 500ms de inatividade
+      debounceTimerRef.current = setTimeout(() => {
+        onDescriptionChange(photo.id, newValue);
+      }, 500);
     }
   };
 
@@ -63,9 +78,23 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     }
   };
 
+  // Sincroniza o estado local com a prop quando a foto mudar
+  useEffect(() => {
+    setLocalDescription(photo.description);
+  }, [photo.description]);
+
   useEffect(() => {
     adjustTextareaHeight();
-  }, [photo.description]);
+  }, [localDescription]);
+
+  // Limpa o timer quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Calcula se a imagem está rotacionada em 90° ou 270° (portrait)
   const rotation = photo.rotationMetadata || photo.rotation || 0;
@@ -135,7 +164,7 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
         <textarea
           ref={textareaRef}
           placeholder="Adicione uma descrição (máximo 78 caracteres). A descrição será exibida em uma única linha."
-          value={photo.description}
+          value={localDescription}
           onChange={handleDescriptionChange}
           onKeyDown={handleKeyDown}
           className="photo-description"
