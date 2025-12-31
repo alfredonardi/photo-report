@@ -5,6 +5,7 @@ import { PDFDocument } from './pdf/PDFDocument';
 import { formatters } from './formatters';
 import { pdfUploadService } from '../services/supabase/pdfUploadService';
 import { imageUtils } from './imageProcessing';
+import { showToast } from './toast';
 
 interface PDFConfig {
   boNumber: string;
@@ -30,6 +31,40 @@ const isMobileDevice = (): boolean => {
 
   // É mobile se: tem keywords mobile OU (tem touch + tela pequena)
   return isMobileUA || (hasTouchScreen && isSmallScreen);
+};
+
+/**
+ * Detecta se o app está sendo executado dentro de uma WebView
+ * WebViews (WhatsApp, Gmail, Facebook, etc.) geralmente não suportam navigator.share com arquivos
+ */
+const isWebView = (): boolean => {
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  // Detecta WebViews comuns em Android e iOS
+  const webViewIndicators = [
+    'wv',              // Android WebView
+    'fb_iab',          // Facebook in-app browser
+    'fban',            // Facebook Android
+    'fbios',           // Facebook iOS
+    'instagram',       // Instagram in-app browser
+    'line',            // LINE app
+    'micromessenger',  // WeChat
+    'kakaotalk',       // KakaoTalk
+    'telegram',        // Telegram
+    'whatsapp',        // WhatsApp (raro, mas possível)
+  ];
+
+  // Verifica se algum indicador está presente
+  const hasWebViewIndicator = webViewIndicators.some(indicator =>
+    userAgent.includes(indicator)
+  );
+
+  // Verifica se é Gmail/Outlook app (não tem indicadores claros, mas podemos tentar)
+  const isEmailApp = userAgent.includes('android') &&
+                     !userAgent.includes('chrome') &&
+                     userAgent.includes('version/');
+
+  return hasWebViewIndicator || isEmailApp;
 };
 
 export const pdfGenerator = {
@@ -100,33 +135,49 @@ export const pdfGenerator = {
         });
       }
 
-      // Detecta se é mobile
+      // Detecta se é mobile e se está em WebView
       const isMobile = isMobileDevice();
+      const inWebView = isWebView();
 
       // MOBILE: Tenta usar Web Share API para compartilhamento
-      if (isMobile && navigator.share && navigator.canShare) {
+      if (isMobile && navigator.share) {
         try {
           // Cria um arquivo a partir do blob
           const file = new File([blob], filename, { type: 'application/pdf' });
 
-          // Verifica se pode compartilhar arquivos
-          if (navigator.canShare({ files: [file] })) {
+          // Verifica se a API canShare existe e se pode compartilhar arquivos
+          const canShareFiles = navigator.canShare && navigator.canShare({ files: [file] });
+
+          if (canShareFiles && !inWebView) {
+            // Tenta compartilhar
             await navigator.share({
               files: [file],
               title: 'Relatório Fotográfico',
               text: `Relatório do BO ${config.boNumber}`,
             });
             return; // Sucesso! Compartilhou
+          } else {
+            // Não pode compartilhar arquivos ou está em WebView
+            if (inWebView) {
+              console.log('📱 Detectado WebView - usando download direto');
+              showToast.info('Abrindo no navegador principal permite compartilhar o PDF. Por ora, baixando arquivo...');
+            } else {
+              console.log('📱 Compartilhamento de arquivos não suportado - usando download direto');
+              showToast.info('Compartilhamento não disponível neste navegador. Baixando arquivo...');
+            }
+            // Continua para download abaixo
           }
         } catch (shareError) {
           const error = shareError as ShareError;
           // Se usuário cancelou, faz download direto
           if (error.name === 'AbortError') {
-            console.log('Compartilhamento cancelado, fazendo download...');
+            console.log('Compartilhamento cancelado pelo usuário');
+            showToast.info('Compartilhamento cancelado. Baixando arquivo...');
             // Continua para o download abaixo
           } else {
             // Outro erro, continua para o download
-            console.warn('Erro ao compartilhar, fazendo download:', error);
+            console.warn('Erro ao compartilhar:', error);
+            showToast.warning('Erro ao compartilhar. Baixando arquivo...');
           }
         }
       }
@@ -142,6 +193,11 @@ export const pdfGenerator = {
 
       // Cleanup
       URL.revokeObjectURL(url);
+
+      // Mostra mensagem de sucesso do download
+      if (!isMobile || inWebView) {
+        showToast.success('PDF baixado com sucesso!');
+      }
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       throw new Error('Não foi possível gerar o PDF. Por favor, tente novamente.');
