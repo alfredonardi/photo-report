@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { ImagePlus } from 'lucide-react';
 import { PhotoItem } from './PhotoItem';
 import { Photo } from '../services/database/photoService';
 
@@ -17,17 +18,22 @@ export const PhotoList: React.FC<PhotoListProps> = ({
   onRotate,
   onRemove,
 }) => {
-  // Otimização: usa useMemo para evitar re-ordenação desnecessária
   const sortedPhotos = useMemo(
     () => [...photos].sort((a, b) => a.position - b.position),
     [photos]
   );
 
-  // Adiciona validação para lista vazia
   if (sortedPhotos.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        Nenhuma foto adicionada ainda. Comece importando imagens.
+      <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 px-6 py-14 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-white text-slate-700 shadow-sm">
+          <ImagePlus size={28} />
+        </div>
+        <h3 className="mt-5 text-xl font-semibold text-slate-950">Nenhuma foto adicionada ainda</h3>
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-600">
+          Comece importando imagens para montar o relatório. Depois você pode descrever,
+          reordenar e revisar tudo nesta mesma área.
+        </p>
       </div>
     );
   }

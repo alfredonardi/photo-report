@@ -4,15 +4,13 @@ export const AppFooter: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-8 pt-6 pb-4 border-t border-gray-200">
-      <div className="text-center space-y-2">
-        <p className="text-sm text-gray-600">
-          Desenvolvido por <span className="font-semibold text-gray-800">Alfredo Nardi</span>
-        </p>
-        <p className="text-xs text-gray-500">
-          © {currentYear} Todos os direitos reservados
-        </p>
-      </div>
+    <footer className="mt-8 rounded-[28px] border border-white/70 bg-white/75 px-6 py-5 text-center shadow-[0_18px_50px_rgba(15,23,42,0.05)] backdrop-blur">
+      <p className="text-sm text-slate-600">
+        Desenvolvido por <span className="font-semibold text-slate-900">Alfredo Nardi</span>
+      </p>
+      <p className="mt-2 text-xs uppercase tracking-[0.16em] text-slate-400">
+        © {currentYear} Todos os direitos reservados
+      </p>
     </footer>
   );
 };

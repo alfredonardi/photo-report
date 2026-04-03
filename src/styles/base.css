@@ -1,14 +1,56 @@
-/* Base styles */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --app-bg: #f3efe7;
+    --app-bg-secondary: #eef3f8;
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-strong: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --border-soft: rgba(148, 163, 184, 0.25);
+  }
+
   * {
     @apply box-border;
   }
 
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply m-0 p-0 font-sans bg-gray-100;
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.22), transparent 32%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 24%),
+      linear-gradient(180deg, var(--app-bg-secondary) 0%, var(--app-bg) 100%);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-blue-500/70 ring-offset-2 ring-offset-white;
   }
 }

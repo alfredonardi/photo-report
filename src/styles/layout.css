@@ -1,17 +1,24 @@
 @layer components {
-  .app-container {
-    @apply max-w-[400px] md:max-w-[800px] mx-auto p-5 md:p-8 bg-white rounded-lg shadow-md;
+  .auth-shell {
+    @apply flex min-h-screen items-center justify-center py-10;
   }
 
-  .app-header {
-    @apply flex items-center justify-center flex-col text-center mb-5 mt-6;
+  .auth-shell__panel {
+    @apply rounded-[32px] p-6 backdrop-blur lg:p-8;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.1);
   }
 
-  .app-logo {
-    @apply w-32 h-auto mb-4 mt-2;
+  .auth-shell__eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-slate-500;
   }
 
-  .app-header h1 {
-    @apply text-2xl md:text-3xl m-0;
+  .auth-shell__title {
+    @apply text-3xl font-semibold tracking-tight text-slate-950 lg:text-5xl;
+  }
+
+  .auth-shell__description {
+    @apply mt-4 max-w-2xl text-base leading-7 text-slate-600;
   }
 }

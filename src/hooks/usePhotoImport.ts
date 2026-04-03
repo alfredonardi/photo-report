@@ -100,13 +100,12 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
   /**
    * Manipula importação de múltiplos arquivos
    */
-  const handleImportPhotos = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (!files?.length) return;
+  const importFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      if (!fileArray.length) return;
 
       setIsImporting(true);
-      const fileArray = Array.from(files);
       const totalFiles = fileArray.length;
       const errors: string[] = [];
 
@@ -158,15 +157,27 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
       } finally {
         setIsImporting(false);
         setProgress(null);
-        // Limpa input para permitir reimportação dos mesmos arquivos
-        event.target.value = '';
       }
     },
     [onPhotoAdd]
   );
 
+  const handleImportPhotos = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files?.length) return;
+
+      await importFiles(files);
+
+      // Limpa input para permitir reimportação dos mesmos arquivos
+      event.target.value = '';
+    },
+    [importFiles]
+  );
+
   return {
     handleImportPhotos,
+    importFiles,
     isImporting,
     progress,
   };

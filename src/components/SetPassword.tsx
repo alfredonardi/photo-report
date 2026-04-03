@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { KeyRound, ShieldCheck } from 'lucide-react';
 import { supabase } from '../services/supabase/config';
 import { showToast } from '../utils/toast';
 import { AuthError } from '../types';
@@ -8,19 +9,12 @@ interface SetPasswordProps {
   onPasswordSet: () => void;
 }
 
-/**
- * Componente para usuário definir senha após aceitar convite
- * Aparece no primeiro acesso quando usuário vem de um convite
- */
 export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  /**
-   * Valida força da senha
-   */
   const validatePassword = (pwd: string): { valid: boolean; message: string } => {
     if (pwd.length < 8) {
       return { valid: false, message: 'A senha deve ter pelo menos 8 caracteres' };
@@ -41,9 +35,6 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
     return { valid: true, message: 'Senha válida' };
   };
 
-  /**
-   * Retorna a força da senha em %
-   */
   const getPasswordStrength = (pwd: string): number => {
     let strength = 0;
 
@@ -52,39 +43,31 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
     if (/[a-z]/.test(pwd)) strength += 15;
     if (/[A-Z]/.test(pwd)) strength += 15;
     if (/[0-9]/.test(pwd)) strength += 15;
-    if (/[^a-zA-Z0-9]/.test(pwd)) strength += 15; // Caracteres especiais
+    if (/[^a-zA-Z0-9]/.test(pwd)) strength += 15;
 
     return strength;
   };
 
-  /**
-   * Retorna cor baseada na força da senha
-   */
   const getStrengthColor = (strength: number): string => {
-    if (strength < 40) return 'bg-red-500';
-    if (strength < 70) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (strength < 40) return 'bg-rose-500';
+    if (strength < 70) return 'bg-amber-500';
+    return 'bg-emerald-500';
   };
 
-  /**
-   * Retorna texto baseado na força da senha
-   */
   const getStrengthText = (strength: number): string => {
     if (strength < 40) return 'Fraca';
     if (strength < 70) return 'Média';
     return 'Forte';
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
-    // Valida se as senhas coincidem
     if (password !== confirmPassword) {
       showToast.error('As senhas não coincidem');
       return;
     }
 
-    // Valida força da senha
     const validation = validatePassword(password);
     if (!validation.valid) {
       showToast.error(validation.message);
@@ -98,11 +81,10 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
         throw new Error('Supabase não configurado.');
       }
 
-      // Atualiza a senha do usuário atual
       const { error } = await supabase.auth.updateUser({
-        password: password,
+        password,
         data: {
-          password_set: true, // Marca que a senha foi definida
+          password_set: true,
         },
       });
 
@@ -110,15 +92,13 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
 
       showToast.success('Senha definida com sucesso!');
 
-      // Aguarda um pouco para o usuário ver a mensagem
       setTimeout(() => {
         onPasswordSet();
       }, 1000);
-
     } catch (error) {
       console.error('Error setting password:', error);
       const authError = error as AuthError;
-      showToast.error('Erro ao definir senha: ' + (authError.message || 'Tente novamente'));
+      showToast.error(`Erro ao definir senha: ${authError.message || 'Tente novamente'}`);
     } finally {
       setIsLoading(false);
     }
@@ -127,143 +107,114 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
   const passwordStrength = getPasswordStrength(password);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        {/* Logo e Título */}
-        <div className="text-center mb-8">
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-32 h-32 mx-auto mb-4 object-contain"
-          />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Defina sua Senha
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Escolha uma senha forte para proteger sua conta
+    <div className="auth-shell px-4">
+      <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="auth-shell__panel">
+          <img src={logo} alt="Logo" className="h-24 w-24 object-contain" />
+          <p className="auth-shell__eyebrow mt-6">Primeiro acesso</p>
+          <h1 className="auth-shell__title mt-3">Defina sua senha e entre no ambiente de trabalho</h1>
+          <p className="auth-shell__description">
+            Esse passo conclui o convite e mantém a área de relatórios protegida, sem alterar o
+            formato do PDF que já está em produção.
           </p>
-        </div>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nova Senha */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Nova Senha
+          <div className="mt-8 rounded-[24px] border border-slate-200/80 bg-white/80 p-5">
+            <div className="flex items-start gap-3">
+              <ShieldCheck size={20} className="mt-1 text-emerald-600" />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Acesso seguro e rastreável</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Sua senha protege o acesso à área de preparação do relatório e reforça a autoria do documento.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="auth-shell__panel">
+          <div className="mb-8">
+            <p className="auth-shell__eyebrow">Definição de senha</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Escolha uma senha forte</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Depois disso, o acesso ao sistema segue normalmente com email e senha.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">Nova senha</span>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="auth-input pr-14"
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <KeyRound size={16} />
+                </button>
+              </div>
+
+              {password && (
+                <div className="mt-3">
+                  <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600">
+                    <span>Força da senha</span>
+                    <span>{getStrengthText(passwordStrength)}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-200">
+                    <div
+                      className={`h-2 rounded-full transition-all ${getStrengthColor(passwordStrength)}`}
+                      style={{ width: `${passwordStrength}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </label>
-            <div className="relative">
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">Confirmar senha</span>
               <input
-                id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 8 caracteres"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="Digite a senha novamente"
+                className="auth-input"
                 required
                 disabled={isLoading}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
+              {confirmPassword && (
+                <p className={`mt-2 text-xs font-medium ${password === confirmPassword ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {password === confirmPassword ? 'As senhas coincidem.' : 'As senhas não coincidem.'}
+                </p>
+              )}
+            </label>
+
+            <div className="rounded-[24px] border border-blue-200 bg-blue-50/90 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Requisitos</p>
+              <ul className="mt-3 space-y-2 text-sm text-blue-900">
+                <li>{password.length >= 8 ? '✓' : '○'} Mínimo de 8 caracteres</li>
+                <li>{/[A-Z]/.test(password) ? '✓' : '○'} Uma letra maiúscula</li>
+                <li>{/[a-z]/.test(password) ? '✓' : '○'} Uma letra minúscula</li>
+                <li>{/[0-9]/.test(password) ? '✓' : '○'} Um número</li>
+              </ul>
             </div>
 
-            {/* Indicador de força da senha */}
-            {password && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-600">Força da senha:</span>
-                  <span className="text-xs font-medium text-gray-700">
-                    {getStrengthText(passwordStrength)}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all ${getStrengthColor(passwordStrength)}`}
-                    style={{ width: `${passwordStrength}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Confirmar Senha */}
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirme a Senha
-            </label>
-            <input
-              id="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Digite a senha novamente"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              required
-              disabled={isLoading}
-            />
-            {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">
-                As senhas não coincidem
-              </p>
-            )}
-            {confirmPassword && password === confirmPassword && (
-              <p className="text-xs text-green-500 mt-1">
-                ✓ Senhas coincidem
-              </p>
-            )}
-          </div>
-
-          {/* Requisitos da senha */}
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <p className="text-xs font-medium text-blue-800 mb-2">
-              Requisitos da senha:
-            </p>
-            <ul className="text-xs text-blue-700 space-y-1">
-              <li className={password.length >= 8 ? 'text-green-600' : ''}>
-                {password.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
-              </li>
-              <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>
-                {/[A-Z]/.test(password) ? '✓' : '○'} Uma letra maiúscula
-              </li>
-              <li className={/[a-z]/.test(password) ? 'text-green-600' : ''}>
-                {/[a-z]/.test(password) ? '✓' : '○'} Uma letra minúscula
-              </li>
-              <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>
-                {/[0-9]/.test(password) ? '✓' : '○'} Um número
-              </li>
-            </ul>
-          </div>
-
-          {/* Botão */}
-          <button
-            type="submit"
-            disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold
-                     hover:bg-blue-700 active:bg-blue-800 transition-all shadow-md
-                     hover:shadow-lg transform hover:-translate-y-0.5
-                     disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⏳</span>
-                Definindo senha...
-              </span>
-            ) : (
-              'Definir Senha e Continuar'
-            )}
-          </button>
-        </form>
-
-        {/* Informações adicionais */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
-            🔒 Sua senha será criptografada e armazenada com segurança
-          </p>
-        </div>
+            <button
+              type="submit"
+              disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
+              className="auth-primary-button"
+            >
+              {isLoading ? 'Definindo senha...' : 'Definir senha e continuar'}
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );

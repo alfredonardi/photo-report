@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LockKeyhole, ShieldCheck } from 'lucide-react';
 import { showToast } from '../utils/toast';
 import { AuthError } from '../types';
 import logo from '../assets/logo.jpg';
@@ -7,17 +8,13 @@ interface LoginProps {
   onLogin: (email: string, password: string) => Promise<void>;
 }
 
-/**
- * Componente de tela de login com Supabase Auth
- * Sistema restrito - apenas usuários convidados podem acessar
- */
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!email || !password) {
       showToast.warning('Por favor, preencha email e senha');
@@ -33,7 +30,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       const authError = error as AuthError;
 
-      // Mensagens de erro amigáveis
       if (authError.message?.includes('Invalid login credentials')) {
         showToast.error('Email ou senha incorretos');
       } else if (authError.message?.includes('Email not confirmed')) {
@@ -47,90 +43,89 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        {/* Logo e Título */}
-        <div className="text-center mb-8">
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-32 h-32 mx-auto mb-4 object-contain"
-          />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Relatório Fotográfico
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Faça login para acessar o sistema
-          </p>
-        </div>
-
-        {/* Formulário de login */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu.email@exemplo.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              disabled={isLoading}
-              required
-            />
+    <div className="auth-shell px-4">
+      <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="auth-shell__panel">
+          <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+            Acesso restrito
           </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold
-                     hover:bg-blue-700 active:bg-blue-800 transition-all shadow-md
-                     hover:shadow-lg transform hover:-translate-y-0.5
-                     disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⏳</span>
-                Entrando...
-              </span>
-            ) : (
-              'Entrar'
-            )}
-          </button>
-        </form>
-
-        {/* Informações adicionais */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center mb-3">
-            🔒 Acesso restrito - Apenas usuários autorizados
+          <img src={logo} alt="Logo" className="mt-6 h-24 w-24 object-contain" />
+          <h1 className="auth-shell__title mt-6">Relatório fotográfico com fluxo mais claro e saída preservada</h1>
+          <p className="auth-shell__description">
+            Entre para montar relatórios com mais rapidez no app, mantendo o PDF final exatamente no formato já aprovado.
           </p>
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <p className="text-xs text-blue-800 text-center font-medium">
-              Não tem acesso?
-            </p>
-            <p className="text-xs text-blue-600 text-center mt-1">
-              Entre em contato com o administrador para solicitar convite
+
+          <div className="mt-8 grid gap-3">
+            <div className="rounded-[24px] border border-slate-200/80 bg-white/80 p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck size={20} className="mt-1 text-emerald-600" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Autenticação obrigatória</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    Cada relatório fica associado ao usuário autenticado para preservar rastreabilidade.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-[24px] border border-slate-200/80 bg-white/80 p-4">
+              <div className="flex items-start gap-3">
+                <LockKeyhole size={20} className="mt-1 text-blue-700" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Convite controlado</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    O acesso continua restrito a usuários autorizados pelo administrador do ambiente.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="auth-shell__panel">
+          <div className="mb-8">
+            <p className="auth-shell__eyebrow">Entrar no sistema</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Acesse o workspace do relatório</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Use seu email corporativo e a senha definida para este ambiente.
             </p>
           </div>
-        </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="seu.email@exemplo.com"
+                className="auth-input"
+                disabled={isLoading}
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-slate-700">Senha</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                className="auth-input"
+                disabled={isLoading}
+                required
+              />
+            </label>
+
+            <button type="submit" disabled={isLoading} className="auth-primary-button">
+              {isLoading ? 'Entrando...' : 'Entrar no sistema'}
+            </button>
+          </form>
+
+          <div className="mt-8 rounded-[24px] border border-slate-200/80 bg-slate-50/90 p-4 text-sm leading-6 text-slate-600">
+            Não tem acesso? Solicite um convite ao administrador responsável pelo projeto.
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { RotateCw, RotateCcw, Trash2 } from 'lucide-react';
 import { Photo } from '../services/database/photoService';
 import { PositionSelector } from './PositionSelector';
-import { RotateCw, RotateCcw } from 'lucide-react';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface PhotoItemProps {
   photo: Photo;
@@ -22,18 +23,10 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [localDescription, setLocalDescription] = useState(photo.description);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
-  const handleRemove = () => {
-    const confirmRemoval = window.confirm(
-      'Você tem certeza que deseja apagar esta foto?'
-    );
-    if (confirmRemoval) {
-      onRemove(photo.id);
-    }
-  };
-
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = event.target.value;
 
     if (newValue.length <= 78) {
       setLocalDescription(newValue);
@@ -52,10 +45,10 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     onRotate(photo.id, newRotation);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const value = e.currentTarget.value;
-    if (value.length >= 78 && e.key !== 'Backspace' && e.key !== 'Delete' && !e.metaKey && !e.ctrlKey) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const value = event.currentTarget.value;
+    if (value.length >= 78 && event.key !== 'Backspace' && event.key !== 'Delete' && !event.metaKey && !event.ctrlKey) {
+      event.preventDefault();
     }
   };
 
@@ -67,7 +60,6 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     }
   };
 
-  // Sincroniza o estado local com a prop quando a foto mudar
   useEffect(() => {
     setLocalDescription(photo.description);
   }, [photo.description]);
@@ -76,84 +68,129 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     adjustTextareaHeight();
   }, [localDescription]);
 
-  // Calcula se a imagem está rotacionada em 90° ou 270° (portrait)
   const rotation = photo.rotationMetadata || photo.rotation || 0;
   const isRotatedPortrait = rotation === 90 || rotation === 270;
-
-  // Calcula scale para imagem rotacionada caber no container
-  // Para 4:3 rotacionado 90°, precisa scale de 3/4 = 0.75
   const rotationScale = isRotatedPortrait ? 0.75 : 1;
+  const descriptionLength = localDescription.length;
 
   return (
-    <div className="photo-item-container">
-      <div
-        className="photo-image-container"
-        style={{
-          // Container SEMPRE landscape (4:3) - não muda com rotação
-          width: '100%',
-          aspectRatio: '4 / 3',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          backgroundColor: '#f5f5f5',
-        }}
-      >
-        <img
-          src={photo.originalPhoto || photo.photo}
-          alt={`Foto ${photo.position}`}
-          className="photo-item"
+    <>
+      <article className="photo-item-container">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+              Foto {photo.position}
+            </span>
+            <span className={`rounded-full px-3 py-1 text-xs font-medium ${descriptionLength > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+              {descriptionLength > 0 ? 'Descrição pronta' : 'Sem descrição'}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsRemoveDialogOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+          >
+            <Trash2 size={16} />
+            Remover
+          </button>
+        </div>
+
+        <div
+          className="photo-image-container"
           style={{
-            // Rotação + scale para caber no container
-            transform: `rotate(${rotation}deg) scale(${rotationScale})`,
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            // Imagem preenche o container mantendo proporção
             width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            aspectRatio: '4 / 3',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            background:
+              'radial-gradient(circle at top, rgba(255,255,255,0.95), rgba(241,245,249,0.85) 55%, rgba(226,232,240,0.8))',
           }}
-        />
-      </div>
-      <div className="rotation-selector">
-        <div className="flex items-center gap-2 mt-2 mb-2">
-          <button
-            onClick={handleRotateLeft}
-            className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded border border-gray-300 transition-colors"
-            title="Rotacionar para esquerda (sentido anti-horário)"
-          >
-            <RotateCcw size={18} />
-            <span className="text-sm">Esquerda</span>
-          </button>
-          <button
-            onClick={handleRotateRight}
-            className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded border border-gray-300 transition-colors"
-            title="Rotacionar para direita (sentido horário)"
-          >
-            <span className="text-sm">Direita</span>
-            <RotateCw size={18} />
-          </button>
+        >
+          <img
+            src={photo.originalPhoto || photo.photo}
+            alt={`Foto ${photo.position}`}
+            className="photo-item"
+            style={{
+              transform: `rotate(${rotation}deg) scale(${rotationScale})`,
+              transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+            }}
+          />
         </div>
-      </div>
-      <div className="photo-item-controls">
-        <PositionSelector
-          id={photo.id}
-          currentPosition={photo.position}
-          totalPhotos={totalPhotos}
-          onPositionChange={onPositionChange}
-        />
-        <textarea
-          ref={textareaRef}
-          placeholder="Adicione uma descrição (máximo 78 caracteres). A descrição será exibida em uma única linha."
-          value={localDescription}
-          onChange={handleDescriptionChange}
-          onKeyDown={handleKeyDown}
-          className="photo-description"
-          maxLength={78}
-        />
-        <div className="photo-item-buttons">
-          <button onClick={handleRemove}>Apagar</button>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_150px]">
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label htmlFor={`description-${photo.id}`} className="text-sm font-semibold text-slate-800">
+                Descrição
+              </label>
+              <span className="text-xs font-medium text-slate-500">{descriptionLength}/78</span>
+            </div>
+            <textarea
+              id={`description-${photo.id}`}
+              ref={textareaRef}
+              placeholder="Descreva rapidamente o que deve aparecer no relatório."
+              value={localDescription}
+              onChange={handleDescriptionChange}
+              onKeyDown={handleKeyDown}
+              className="photo-description"
+              maxLength={78}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <PositionSelector
+              id={photo.id}
+              currentPosition={photo.position}
+              totalPhotos={totalPhotos}
+              onPositionChange={onPositionChange}
+            />
+
+            <div>
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Ajuste rápido
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleRotateLeft}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                  title="Rotacionar para esquerda"
+                >
+                  <RotateCcw size={16} />
+                  Esquerda
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRotateRight}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                  title="Rotacionar para direita"
+                >
+                  <RotateCw size={16} />
+                  Direita
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </article>
+
+      <ConfirmDialog
+        open={isRemoveDialogOpen}
+        title={`Remover a foto ${photo.position}`}
+        description="A imagem será excluída deste relatório e as posições serão reorganizadas automaticamente."
+        confirmLabel="Apagar foto"
+        onConfirm={() => {
+          setIsRemoveDialogOpen(false);
+          onRemove(photo.id);
+        }}
+        onClose={() => setIsRemoveDialogOpen(false)}
+      />
+    </>
   );
 };

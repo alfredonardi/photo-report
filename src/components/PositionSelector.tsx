@@ -13,40 +13,37 @@ export const PositionSelector: React.FC<PositionSelectorProps> = ({
   totalPhotos,
   onPositionChange,
 }) => {
-  // Validação: não mostrar seletor se houver apenas 1 foto
   if (totalPhotos <= 1) {
     return (
-      <div className="position-selector">
-        <div className="position-info">
-          <span className="position-label">Posição {currentPosition}</span>
-        </div>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+        Posição {currentPosition}
       </div>
     );
   }
 
   return (
-    <div className="position-selector">
-      <div className="position-info">
-        <span className="position-label">Posição {currentPosition}</span>
-      </div>
+    <label className="block">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+        Posição
+      </span>
       <select
         id={`position-select-${id}`}
         value={currentPosition}
-        onChange={(e) => onPositionChange(id, parseInt(e.target.value))}
+        onChange={(event) => onPositionChange(id, parseInt(event.target.value, 10))}
         className="position-select"
         aria-label={`Alterar posição da foto ${currentPosition}`}
       >
         <option key="placeholder" value={currentPosition}>
-          Alterar posição...
+          Foto {currentPosition}
         </option>
-        {Array.from({ length: totalPhotos }, (_, i) => i + 1)
-          .filter(pos => pos !== currentPosition)
-          .map(position => (
+        {Array.from({ length: totalPhotos }, (_, index) => index + 1)
+          .filter((position) => position !== currentPosition)
+          .map((position) => (
             <option key={`pos-${position}`} value={position}>
-              {position}
+              Mover para {position}
             </option>
           ))}
       </select>
-    </div>
+    </label>
   );
 };
