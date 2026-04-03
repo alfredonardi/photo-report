@@ -337,17 +337,13 @@ function App() {
           <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur xl:p-8">
             <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr] xl:items-start">
               <div>
-                <div className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
-                  Workspace de preparação
-                </div>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-3xl">
-                    <h1 className="text-3xl font-semibold tracking-tight text-slate-950 lg:text-5xl">
-                      Monte o relatório no app, preserve o PDF exatamente como ele já sai hoje.
+                    <h1 className="text-3xl font-semibold tracking-tight text-slate-950 lg:text-4xl">
+                      Gerador de Relatório Fotográfico
                     </h1>
                     <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 lg:text-lg">
-                      O fluxo agora fica mais claro para importar, revisar, ordenar e descrever as
-                      imagens antes da exportação. A geração do documento final permanece intacta.
+                      Preencha os dados do relatório, importe as imagens e gere o PDF.
                     </p>
                   </div>
                 </div>
@@ -374,15 +370,15 @@ function App() {
                   label="Descrições"
                   value={`${describedPhotos}/${photos.length || 0}`}
                   detail={describedPhotos === photos.length && photos.length > 0
-                    ? 'Todas as imagens já têm contexto preenchido.'
-                    : 'As descrições ajudam a revisar rapidamente antes do PDF.'}
+                    ? 'Todas as fotos têm descrição.'
+                    : 'Adicione descrições para facilitar a revisão.'}
                 />
                 <SummaryCard
                   label="Checklist"
                   value={`${readyFieldsCount}/3`}
                   detail={reportReady
-                    ? 'Tudo pronto para exportar o relatório.'
-                    : 'Complete os campos do relatório e finalize a importação.'}
+                    ? 'Tudo pronto para gerar o PDF.'
+                    : 'Complete os dados do relatório.'}
                 />
               </div>
             </div>
@@ -393,12 +389,12 @@ function App() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Contexto do relatório
+                    Dados do relatório
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Configure o documento antes de revisar as imagens</h2>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Preencha as informações principais</h2>
                 </div>
                 <p className="max-w-md text-sm leading-6 text-slate-500">
-                  Esses dados continuam alimentando o mesmo PDF. Só estamos melhorando a preparação.
+                  Esses dados aparecem no relatório final.
                 </p>
               </div>
 
@@ -457,10 +453,10 @@ function App() {
             </div>
 
             <aside className="rounded-[32px] border border-white/70 bg-slate-950 p-6 text-slate-100 shadow-[0_24px_80px_rgba(15,23,42,0.18)] xl:sticky xl:top-24">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Pronto para exportar</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">Checklist do relatório</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Resumo</p>
+              <h2 className="mt-2 text-2xl font-semibold text-white">Antes de gerar o PDF</h2>
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                O PDF continua igual. Esta área só ajuda a evitar exportações incompletas.
+                Revise rapidamente os itens obrigatórios antes da exportação.
               </p>
 
               <div className="mt-5 space-y-3">
@@ -480,8 +476,8 @@ function App() {
                   done={photos.length > 0}
                   title="Imagens carregadas"
                   description={photos.length > 0
-                    ? `${photos.length} foto${photos.length > 1 ? 's' : ''} pronta${photos.length > 1 ? 's' : ''} para o PDF.`
-                    : 'Importe as imagens antes de exportar.'}
+                    ? `${photos.length} foto${photos.length > 1 ? 's' : ''} carregada${photos.length > 1 ? 's' : ''}.`
+                    : 'Importe as imagens antes de gerar o PDF.'}
                 />
               </div>
 
@@ -509,11 +505,10 @@ function App() {
           <section className="mt-6 rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação de imagens</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Traga as fotos para dentro do relatório</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Arraste arquivos para esta área ou clique para escolher imagens do dispositivo.
-                  O fluxo segue focado exclusivamente em fotos importadas.
+                  Arraste arquivos para esta área ou clique para selecionar imagens.
                 </p>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
@@ -565,7 +560,7 @@ function App() {
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
                   {isImporting && progress
                     ? `Processando ${progress.current} de ${progress.total}: ${progress.currentFileName}`
-                    : 'Aceita JPEG, PNG, WebP e HEIC/HEIF. As imagens entram na ordem em que forem importadas e podem ser reorganizadas depois.'}
+                    : 'Aceita JPEG, PNG, WebP e HEIC/HEIF. A ordem pode ser ajustada depois.'}
                 </p>
                 <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
                   <Upload size={16} />
@@ -578,8 +573,8 @@ function App() {
           <section className="mt-6 rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
             <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Painel de revisão</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Revise, descreva e reordene as fotos</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Fotos</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Revise e organize as imagens</h2>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-slate-600">
@@ -614,7 +609,7 @@ function App() {
       <ConfirmDialog
         open={isPDFConfirmOpen}
         title="Gerar relatório em PDF"
-        description={`Vamos exportar o relatório do BO ${boNumber} com ${photos.length} foto${photos.length > 1 ? 's' : ''}. O layout do PDF permanece exatamente o mesmo; esta confirmação serve só para evitar exportações por engano.`}
+        description={`Gerar o relatório do BO ${boNumber} com ${photos.length} foto${photos.length > 1 ? 's' : ''}?`}
         confirmLabel="Gerar PDF"
         tone="primary"
         onConfirm={confirmGeneratePDF}

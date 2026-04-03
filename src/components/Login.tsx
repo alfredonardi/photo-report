@@ -50,9 +50,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             Acesso restrito
           </div>
           <img src={logo} alt="Logo" className="mt-6 h-24 w-24 object-contain" />
-          <h1 className="auth-shell__title mt-6">Relatório fotográfico com fluxo mais claro e saída preservada</h1>
+          <h1 className="auth-shell__title mt-6">Gerador de Relatório Fotográfico</h1>
           <p className="auth-shell__description">
-            Entre para montar relatórios com mais rapidez no app, mantendo o PDF final exatamente no formato já aprovado.
+            Entre para preencher os dados do relatório, importar as fotos e gerar o PDF.
           </p>
 
           <div className="mt-8 grid gap-3">
@@ -62,7 +62,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Autenticação obrigatória</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    Cada relatório fica associado ao usuário autenticado para preservar rastreabilidade.
+                    O acesso é vinculado ao usuário autenticado.
                   </p>
                 </div>
               </div>
@@ -73,7 +73,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Convite controlado</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    O acesso continua restrito a usuários autorizados pelo administrador do ambiente.
+                    Apenas usuários autorizados pelo administrador podem entrar.
                   </p>
                 </div>
               </div>
@@ -84,9 +84,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <section className="auth-shell__panel">
           <div className="mb-8">
             <p className="auth-shell__eyebrow">Entrar no sistema</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Acesse o workspace do relatório</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Acesse o sistema</h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Use seu email corporativo e a senha definida para este ambiente.
+              Use seu email e a senha cadastrada para este ambiente.
             </p>
           </div>
 

@@ -112,10 +112,9 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
         <section className="auth-shell__panel">
           <img src={logo} alt="Logo" className="h-24 w-24 object-contain" />
           <p className="auth-shell__eyebrow mt-6">Primeiro acesso</p>
-          <h1 className="auth-shell__title mt-3">Defina sua senha e entre no ambiente de trabalho</h1>
+          <h1 className="auth-shell__title mt-3">Defina sua senha</h1>
           <p className="auth-shell__description">
-            Esse passo conclui o convite e mantém a área de relatórios protegida, sem alterar o
-            formato do PDF que já está em produção.
+            Esse passo conclui o convite e libera o acesso ao sistema.
           </p>
 
           <div className="mt-8 rounded-[24px] border border-slate-200/80 bg-white/80 p-5">
@@ -124,7 +123,7 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
               <div>
                 <p className="text-sm font-semibold text-slate-900">Acesso seguro e rastreável</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Sua senha protege o acesso à área de preparação do relatório e reforça a autoria do documento.
+                  Sua senha protege o acesso à área de relatórios.
                 </p>
               </div>
             </div>
@@ -136,7 +135,7 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
             <p className="auth-shell__eyebrow">Definição de senha</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Escolha uma senha forte</h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Depois disso, o acesso ao sistema segue normalmente com email e senha.
+              Depois disso, o acesso segue normalmente com email e senha.
             </p>
           </div>
 
