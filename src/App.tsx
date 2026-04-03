@@ -18,7 +18,7 @@ import { supabase } from './services/supabase/config';
 import logo from './assets/logo.jpg';
 
 function App() {
-  const { user, loading: authLoading, login, signup, logout, isAuthenticated } = useAuth();
+  const { user, loading: authLoading, login, logout, isAuthenticated } = useAuth();
   const [selectedGroup, setSelectedGroup] = useLocalStorage('selectedGroup', '');
   const [boNumber, setBoNumber] = useLocalStorage('boNumber', '');
   const [version, setVersion] = useLocalStorage('version', '');
