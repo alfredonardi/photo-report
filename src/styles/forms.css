@@ -1,13 +1,13 @@
 @layer components {
   .bo-input {
-    @apply h-14 w-full rounded-[20px] border border-slate-200 bg-white px-4 text-base uppercase text-slate-900 shadow-sm transition placeholder:text-slate-400;
+    @apply h-14 w-full rounded-[20px] border border-slate-200 bg-white px-4 text-base uppercase text-slate-900 transition placeholder:text-slate-400;
   }
 
   .version-select,
   .group-select,
   .position-select,
   .auth-input {
-    @apply h-14 w-full rounded-[20px] border border-slate-200 bg-white px-4 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400;
+    @apply h-14 w-full rounded-[20px] border border-slate-200 bg-white px-4 text-base text-slate-900 transition placeholder:text-slate-400;
   }
 
   .auth-primary-button {

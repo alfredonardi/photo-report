@@ -22,7 +22,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="mx-auto max-w-7xl rounded-[24px] border border-white/70 bg-white/80 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="mx-auto max-w-7xl rounded-[24px] border border-white/70 bg-white/84 px-4 py-3 shadow-[0_14px_36px_rgba(15,23,42,0.045)] backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
           <UserIcon size={15} className="text-slate-400" />

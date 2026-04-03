@@ -5,14 +5,13 @@
 
   .photo-item-container {
     @apply rounded-[28px] p-5;
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    background: rgba(248, 250, 252, 0.7);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.72);
+    background: rgba(248, 250, 252, 0.8);
   }
 
   .photo-image-container {
-    @apply mt-5 rounded-[24px] p-4 shadow-sm;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    @apply mt-5 rounded-[24px] p-4;
+    border: 1px solid rgba(226, 232, 240, 0.72);
   }
 
   .photo-item {
@@ -20,6 +19,6 @@
   }
 
   .photo-description {
-    @apply min-h-[118px] w-full resize-none rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-800 shadow-sm placeholder:text-slate-400;
+    @apply min-h-[118px] w-full resize-none rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-800 placeholder:text-slate-400;
   }
 }

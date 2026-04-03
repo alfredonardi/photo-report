@@ -303,10 +303,10 @@ function App() {
         {user && <AuthHeader user={user} onLogout={handleLogout} />}
 
         <main className="mx-auto mt-4 max-w-7xl">
-          <section className="rounded-[32px] border border-white/70 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur xl:p-6">
+          <section className="rounded-[32px] border border-white/70 bg-white/92 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.05)] backdrop-blur xl:p-6">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-slate-200 bg-white shadow-sm">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-slate-200 bg-white">
                   <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
                 </div>
                 <div>
@@ -318,19 +318,19 @@ function App() {
               </div>
 
               <div className="flex flex-wrap gap-2 text-sm xl:justify-center">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
                   BO {boNumber || 'pendente'}
                 </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
                   Versão {version || 'pendente'}
                 </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
                   Grupo {selectedGroup || 'pendente'}
                 </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
                   {photos.length} foto{photos.length > 1 ? 's' : ''}
                 </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
                   {describedPhotos} descriç{describedPhotos === 1 ? 'ão' : 'ões'}
                 </span>
               </div>
@@ -346,7 +346,7 @@ function App() {
                 </button>
                 <button
                   onClick={handleClearReport}
-                  className="inline-flex items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isGeneratingPDF || isImporting || isLoading}
                 >
                   <RefreshCcw size={18} />
@@ -357,7 +357,7 @@ function App() {
           </section>
 
           <section className="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
+            <div className="rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
               <div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -421,13 +421,13 @@ function App() {
               )}
             </div>
 
-            <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
+            <div className="rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
                   <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
                 </div>
-                <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+                <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-sm text-slate-600">
                   {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
                 </div>
               </div>
@@ -464,10 +464,10 @@ function App() {
                 onDrop={(event) => void handleDrop(event)}
                 className={`mt-6 rounded-[28px] border-2 border-dashed px-6 py-10 transition ${isDragActive
                   ? 'border-blue-400 bg-blue-50'
-                  : 'border-slate-300 bg-slate-50/80 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                  : 'border-slate-300/90 bg-slate-50/70 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
               >
                 <div className="mx-auto flex max-w-xl flex-col items-center text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-slate-950 text-white shadow-lg">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-slate-950 text-white">
                     {isImporting ? <Upload className="animate-bounce" size={24} /> : <FileImage size={24} />}
                   </div>
                   <h3 className="mt-5 text-lg font-semibold text-slate-950">
@@ -483,17 +483,17 @@ function App() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
+          <section className="mt-6 rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
             <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Fotos</p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-950">Organizar imagens</h2>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-slate-600">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-slate-600">
                   {photos.length} foto{photos.length > 1 ? 's' : ''}
                 </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-slate-600">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-slate-600">
                   {describedPhotos} com descrição
                 </span>
               </div>
