@@ -27,7 +27,7 @@ export const PhotoList: React.FC<PhotoListProps> = ({
   if (sortedPhotos.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        Nenhuma foto adicionada ainda. Comece tirando uma foto ou importando imagens.
+        Nenhuma foto adicionada ainda. Comece importando imagens.
       </div>
     );
   }

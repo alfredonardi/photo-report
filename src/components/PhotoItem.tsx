@@ -22,7 +22,6 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [localDescription, setLocalDescription] = useState(photo.description);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRemove = () => {
     const confirmRemoval = window.confirm(
@@ -37,19 +36,9 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
     const newValue = e.target.value;
 
     if (newValue.length <= 78) {
-      // Atualiza o estado local imediatamente (sem delay)
       setLocalDescription(newValue);
       adjustTextareaHeight();
-
-      // Limpa o timer anterior se existir
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      // Cria um novo timer para sincronizar com o banco após 500ms de inatividade
-      debounceTimerRef.current = setTimeout(() => {
-        onDescriptionChange(photo.id, newValue);
-      }, 500);
+      onDescriptionChange(photo.id, newValue);
     }
   };
 
@@ -86,15 +75,6 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
   useEffect(() => {
     adjustTextareaHeight();
   }, [localDescription]);
-
-  // Limpa o timer quando o componente for desmontado
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
 
   // Calcula se a imagem está rotacionada em 90° ou 270° (portrait)
   const rotation = photo.rotationMetadata || photo.rotation || 0;

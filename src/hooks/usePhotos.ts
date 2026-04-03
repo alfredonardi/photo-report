@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Photo, photoService } from '../services/database/photoService';
 import { imageUtils } from '../utils/imageProcessing';
 import { movePhotoToPosition, removePhotoAndReindex, sortPhotosByPosition } from '../utils/photoOrder';
@@ -11,6 +11,8 @@ export const usePhotos = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pendingDescriptionTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const latestDescriptionsRef = useRef<Map<number, string>>(new Map());
 
   /**
    * Carrega todas as fotos do banco de dados
@@ -34,6 +36,52 @@ export const usePhotos = () => {
   useEffect(() => {
     loadPhotos();
   }, [loadPhotos]);
+
+  const persistDescription = useCallback(async (id: number, description: string): Promise<void> => {
+    try {
+      await photoService.updatePhoto(id, { description });
+
+      if (latestDescriptionsRef.current.get(id) === description) {
+        latestDescriptionsRef.current.delete(id);
+      }
+    } catch (err) {
+      const errorMessage = 'Erro ao atualizar descrição.';
+      setError(errorMessage);
+      console.error('Error updating description:', err);
+    }
+  }, []);
+
+  const flushPendingDescriptions = useCallback(async (): Promise<void> => {
+    if (latestDescriptionsRef.current.size === 0) {
+      return;
+    }
+
+    pendingDescriptionTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+    pendingDescriptionTimeoutsRef.current.clear();
+
+    const pendingDescriptions = Array.from(latestDescriptionsRef.current.entries());
+    await Promise.all(
+      pendingDescriptions.map(([id, description]) => persistDescription(id, description))
+    );
+  }, [persistDescription]);
+
+  useEffect(() => {
+    const pendingDescriptionTimeouts = pendingDescriptionTimeoutsRef.current;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        void flushPendingDescriptions();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      pendingDescriptionTimeouts.forEach((timeout) => clearTimeout(timeout));
+      pendingDescriptionTimeouts.clear();
+    };
+  }, [flushPendingDescriptions]);
 
   /**
    * Adiciona uma nova foto
@@ -62,31 +110,37 @@ export const usePhotos = () => {
 
   /**
    * Atualiza descrição de uma foto
-   * FIX: Adiciona validação de entrada
+   * Mantém a UI sincronizada imediatamente e persiste com debounce
    */
-  const updatePhotoDescription = useCallback(async (id: number, description: string): Promise<void> => {
-    // FIX: Valida entrada antes de processar
+  const updatePhotoDescription = useCallback((id: number, description: string): void => {
     if (description.length > 78) {
       console.warn('Descrição excede 78 caracteres, truncando...');
       description = description.substring(0, 78);
     }
 
-    try {
-      setError(null);
-      await photoService.updatePhoto(id, { description });
-      
-      // FIX: Atualização otimista - atualiza UI antes de recarregar
-      setPhotos(prev => prev.map(p => 
-        p.id === id ? { ...p, description } : p
-      ));
-    } catch (err) {
-      const errorMessage = 'Erro ao atualizar descrição.';
-      setError(errorMessage);
-      console.error('Error updating description:', err);
-      // Recarrega para sincronizar em caso de erro
-      await loadPhotos();
+    setError(null);
+    latestDescriptionsRef.current.set(id, description);
+
+    setPhotos(prev => prev.map((photo) =>
+      photo.id === id ? { ...photo, description } : photo
+    ));
+
+    const existingTimeout = pendingDescriptionTimeoutsRef.current.get(id);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
     }
-  }, [loadPhotos]);
+
+    const timeout = setTimeout(() => {
+      pendingDescriptionTimeoutsRef.current.delete(id);
+      const latestDescription = latestDescriptionsRef.current.get(id);
+
+      if (latestDescription !== undefined) {
+        void persistDescription(id, latestDescription);
+      }
+    }, 500);
+
+    pendingDescriptionTimeoutsRef.current.set(id, timeout);
+  }, [persistDescription]);
 
   /**
    * Atualiza posição de uma foto
@@ -175,8 +229,15 @@ export const usePhotos = () => {
     try {
       setError(null);
 
-      setPhotos(prev => removePhotoAndReindex(prev, id));
+      const pendingTimeout = pendingDescriptionTimeoutsRef.current.get(id);
+      if (pendingTimeout) {
+        clearTimeout(pendingTimeout);
+        pendingDescriptionTimeoutsRef.current.delete(id);
+      }
+      latestDescriptionsRef.current.delete(id);
+
       await photoService.removePhoto(id);
+      setPhotos(prev => removePhotoAndReindex(prev, id));
     } catch (err) {
       const errorMessage = 'Erro ao remover foto.';
       setError(errorMessage);
@@ -192,6 +253,9 @@ export const usePhotos = () => {
   const clearAllPhotos = useCallback(async (): Promise<void> => {
     try {
       setError(null);
+      pendingDescriptionTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+      pendingDescriptionTimeoutsRef.current.clear();
+      latestDescriptionsRef.current.clear();
       await photoService.clearAllPhotos();
       setPhotos([]); // FIX: Limpa state imediatamente
     } catch (err) {
@@ -212,6 +276,7 @@ export const usePhotos = () => {
     rotatePhoto,
     removePhoto,
     clearAllPhotos,
+    flushPendingDescriptions,
     refreshPhotos: loadPhotos,
   };
 };

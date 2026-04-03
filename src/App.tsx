@@ -33,6 +33,7 @@ function App() {
     rotatePhoto,
     removePhoto,
     clearAllPhotos,
+    flushPendingDescriptions,
   } = usePhotos();
 
   const { handleImportPhotos, isImporting, progress } = usePhotoImport(addPhoto);
@@ -84,6 +85,11 @@ function App() {
   };
 
   const handleGeneratePDF = async () => {
+    if (isImporting) {
+      showToast.warning('Aguarde a importação terminar antes de gerar o PDF.');
+      return;
+    }
+
     // Validações
     if (!boNumber || boNumber.length < 9) {
       showToast.warning('Por favor, preencha o número do BO corretamente (Ex: AB1234/25)');
@@ -106,6 +112,7 @@ function App() {
 
     setIsGeneratingPDF(true);
     try {
+      await flushPendingDescriptions();
       const { pdfGenerator } = await import('./utils/pdfGenerator');
 
       await pdfGenerator.generatePDF(photos, {
@@ -125,6 +132,11 @@ function App() {
   };
 
   const handleClearReport = async () => {
+    if (isImporting) {
+      showToast.warning('Aguarde a importação terminar antes de iniciar um novo relatório.');
+      return;
+    }
+
     const confirmClear = window.confirm(
       'Você realmente deseja iniciar um novo relatório?\n\n' +
       'Isso apagará:\n' +
@@ -145,6 +157,21 @@ function App() {
         console.error('Error clearing report:', error);
         showToast.error('Erro ao limpar relatório. Tente novamente.');
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    if (isImporting) {
+      showToast.warning('Aguarde a importação terminar antes de sair do sistema.');
+      return;
+    }
+
+    try {
+      await flushPendingDescriptions();
+      await logout();
+    } catch (error) {
+      console.error('Error logging out:', error);
+      showToast.error('Erro ao sair do sistema. Tente novamente.');
     }
   };
 
@@ -214,7 +241,7 @@ function App() {
       <Toaster />
 
       {/* Header de autenticação */}
-      {user && <AuthHeader user={user} onLogout={logout} />}
+      {user && <AuthHeader user={user} onLogout={handleLogout} />}
 
       {/* Header */}
       <div className="app-header">
@@ -314,7 +341,7 @@ function App() {
         <button 
           onClick={handleGeneratePDF} 
           className="export-button disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isGeneratingPDF || isLoading || photos.length === 0}
+          disabled={isGeneratingPDF || isImporting || isLoading || photos.length === 0}
         >
           {isGeneratingPDF ? (
             <span className="flex items-center justify-center gap-2">
@@ -328,7 +355,7 @@ function App() {
         <button 
           onClick={handleClearReport} 
           className="start-button disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isGeneratingPDF || isLoading}
+          disabled={isGeneratingPDF || isImporting || isLoading}
         >
           Iniciar Novo Relatório
         </button>

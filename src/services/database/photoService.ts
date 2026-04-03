@@ -93,15 +93,11 @@ export const photoService = {
 
     const allPhotos = await this.getAllPhotos();
     const remainingPhotos = removePhotoAndReindex(allPhotos, id);
-    const tx = db.transaction('photos', 'readwrite');
-
-    await tx.store.delete(id);
+    await db.delete('photos', id);
 
     for (const currentPhoto of remainingPhotos) {
-      await tx.store.put(currentPhoto);
+      await db.put('photos', currentPhoto);
     }
-
-    await tx.done;
   },
 
   /**

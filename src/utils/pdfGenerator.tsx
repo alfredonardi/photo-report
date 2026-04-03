@@ -138,12 +138,17 @@ export const pdfGenerator = {
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
 
       // Trigger download
       link.click();
+      link.remove();
 
-      // Cleanup
-      URL.revokeObjectURL(url);
+      // Alguns navegadores precisam de um pequeno atraso para iniciar o download
+      window.setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 1000);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       throw new Error('Não foi possível gerar o PDF. Por favor, tente novamente.');
