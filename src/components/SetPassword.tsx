@@ -111,32 +111,16 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
       <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="auth-shell__panel">
           <img src={logo} alt="Logo" className="h-24 w-24 object-contain" />
-          <p className="auth-shell__eyebrow mt-6">Primeiro acesso</p>
           <h1 className="auth-shell__title mt-3">Defina sua senha</h1>
-          <p className="auth-shell__description">
-            Esse passo conclui o convite e libera o acesso ao sistema.
-          </p>
-
-          <div className="mt-8 rounded-[24px] border border-slate-200/80 bg-white/80 p-5">
-            <div className="flex items-start gap-3">
-              <ShieldCheck size={20} className="mt-1 text-emerald-600" />
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Acesso seguro e rastreável</p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Sua senha protege o acesso à área de relatórios.
-                </p>
-              </div>
-            </div>
+          <div className="mt-8 flex items-center gap-3 rounded-[24px] border border-slate-200/80 bg-white/80 px-4 py-4 text-sm text-slate-600">
+            <ShieldCheck size={18} className="text-emerald-600" />
+            <span>Use uma senha forte para concluir o acesso.</span>
           </div>
         </section>
 
         <section className="auth-shell__panel">
           <div className="mb-8">
-            <p className="auth-shell__eyebrow">Definição de senha</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Escolha uma senha forte</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              Depois disso, o acesso segue normalmente com email e senha.
-            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Nova senha</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

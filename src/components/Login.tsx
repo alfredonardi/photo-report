@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LockKeyhole, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { showToast } from '../utils/toast';
 import { AuthError } from '../types';
 import logo from '../assets/logo.jpg';
@@ -44,50 +44,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="auth-shell px-4">
-      <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="auth-shell__panel">
-          <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
-            Acesso restrito
-          </div>
           <img src={logo} alt="Logo" className="mt-6 h-24 w-24 object-contain" />
           <h1 className="auth-shell__title mt-6">Gerador de Relatório Fotográfico</h1>
-          <p className="auth-shell__description">
-            Entre para preencher os dados do relatório, importar as fotos e gerar o PDF.
-          </p>
-
-          <div className="mt-8 grid gap-3">
-            <div className="rounded-[24px] border border-slate-200/80 bg-white/80 p-4">
-              <div className="flex items-start gap-3">
-                <ShieldCheck size={20} className="mt-1 text-emerald-600" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Autenticação obrigatória</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    O acesso é vinculado ao usuário autenticado.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-[24px] border border-slate-200/80 bg-white/80 p-4">
-              <div className="flex items-start gap-3">
-                <LockKeyhole size={20} className="mt-1 text-blue-700" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Convite controlado</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    Apenas usuários autorizados pelo administrador podem entrar.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-8 flex items-center gap-3 rounded-[24px] border border-slate-200/80 bg-white/80 px-4 py-4 text-sm text-slate-600">
+            <ShieldCheck size={18} className="text-emerald-600" />
+            <span>Acesso restrito a usuários autorizados.</span>
           </div>
         </section>
 
         <section className="auth-shell__panel">
           <div className="mb-8">
-            <p className="auth-shell__eyebrow">Entrar no sistema</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Acesse o sistema</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              Use seu email e a senha cadastrada para este ambiente.
-            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Entrar</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -123,7 +92,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </form>
 
           <div className="mt-8 rounded-[24px] border border-slate-200/80 bg-slate-50/90 p-4 text-sm leading-6 text-slate-600">
-            Não tem acesso? Solicite um convite ao administrador responsável pelo projeto.
+            Solicite um convite ao administrador se precisar de acesso.
           </div>
         </section>
       </div>

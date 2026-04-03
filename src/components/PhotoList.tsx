@@ -29,11 +29,7 @@ export const PhotoList: React.FC<PhotoListProps> = ({
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-white text-slate-700 shadow-sm">
           <ImagePlus size={28} />
         </div>
-        <h3 className="mt-5 text-xl font-semibold text-slate-950">Nenhuma foto adicionada ainda</h3>
-        <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-600">
-          Comece importando imagens para montar o relatório. Depois você pode descrever,
-          reordenar e revisar tudo nesta mesma área.
-        </p>
+        <h3 className="mt-5 text-xl font-semibold text-slate-950">Nenhuma foto adicionada</h3>
       </div>
     );
   }

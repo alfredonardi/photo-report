@@ -342,9 +342,6 @@ function App() {
                     <h1 className="text-3xl font-semibold tracking-tight text-slate-950 lg:text-4xl">
                       Gerador de Relatório Fotográfico
                     </h1>
-                    <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 lg:text-lg">
-                      Preencha os dados do relatório, importe as imagens e gere o PDF.
-                    </p>
                   </div>
                 </div>
                 <div className="mt-6 flex flex-wrap gap-3 text-sm">
@@ -391,11 +388,8 @@ function App() {
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Dados do relatório
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Preencha as informações principais</h2>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Informações principais</h2>
                 </div>
-                <p className="max-w-md text-sm leading-6 text-slate-500">
-                  Esses dados aparecem no relatório final.
-                </p>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -454,10 +448,7 @@ function App() {
 
             <aside className="rounded-[32px] border border-white/70 bg-slate-950 p-6 text-slate-100 shadow-[0_24px_80px_rgba(15,23,42,0.18)] xl:sticky xl:top-24">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Resumo</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">Antes de gerar o PDF</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                Revise rapidamente os itens obrigatórios antes da exportação.
-              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-white">Gerar PDF</h2>
 
               <div className="mt-5 space-y-3">
                 <ChecklistItem
@@ -507,9 +498,6 @@ function App() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Arraste arquivos para esta área ou clique para selecionar imagens.
-                </p>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
                 {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
@@ -560,11 +548,11 @@ function App() {
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
                   {isImporting && progress
                     ? `Processando ${progress.current} de ${progress.total}: ${progress.currentFileName}`
-                    : 'Aceita JPEG, PNG, WebP e HEIC/HEIF. A ordem pode ser ajustada depois.'}
+                    : 'JPEG, PNG, WebP, HEIC e HEIF.'}
                 </p>
                 <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
                   <Upload size={16} />
-                  Arraste e solte aqui ou clique para selecionar
+                  Arraste ou clique para selecionar
                 </div>
               </div>
             </div>
@@ -574,7 +562,7 @@ function App() {
             <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Fotos</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Revise e organize as imagens</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Organizar imagens</h2>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-slate-600">
@@ -619,7 +607,7 @@ function App() {
       <ConfirmDialog
         open={isClearConfirmOpen}
         title="Iniciar um novo relatório"
-        description="Isso vai limpar as fotos, descrições, rotações e os campos do relatório atual. Essa ação não afeta PDFs já exportados."
+        description="Isso vai limpar as fotos e os dados do relatório atual."
         confirmLabel="Limpar relatório"
         onConfirm={confirmClearReport}
         onClose={() => setIsClearConfirmOpen(false)}
