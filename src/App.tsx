@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import {
-  AlertCircle,
-  CheckCircle2,
   FileDown,
   FileImage,
   RefreshCcw,
@@ -22,41 +20,6 @@ import { useAuth } from './hooks/useAuth';
 import { showToast } from './utils/toast';
 import { isSupabaseConfigured, supabase } from './services/supabase/config';
 import logo from './assets/logo.jpg';
-
-interface SummaryCardProps {
-  label: string;
-  value: string;
-  detail: string;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({ label, value, detail }) => (
-  <div className="rounded-[26px] border border-slate-200/80 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-    <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{label}</p>
-    <p className="mt-3 text-2xl font-semibold text-slate-950">{value}</p>
-    <p className="mt-2 text-sm leading-6 text-slate-600">{detail}</p>
-  </div>
-);
-
-interface ChecklistItemProps {
-  done: boolean;
-  title: string;
-  description: string;
-}
-
-const ChecklistItem: React.FC<ChecklistItemProps> = ({ done, title, description }) => {
-  const Icon = done ? CheckCircle2 : AlertCircle;
-  const iconClassName = done ? 'text-emerald-600' : 'text-amber-600';
-
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3">
-      <Icon size={18} className={`mt-0.5 shrink-0 ${iconClassName}`} />
-      <div>
-        <p className="text-sm font-semibold text-slate-900">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
-      </div>
-    </div>
-  );
-};
 
 function App() {
   const {
@@ -129,19 +92,25 @@ function App() {
     [photos]
   );
 
-  const readyFieldsCount = [
-    boNumber.length >= 9,
-    version.length > 0,
-    selectedGroup.length > 0,
-  ].filter(Boolean).length;
-
   const reportReady = boNumber.length >= 9 && !!version && !!selectedGroup && photos.length > 0;
+  const missingItems = [
+    boNumber.length >= 9 ? null : 'BO',
+    version ? null : 'Versão',
+    selectedGroup ? null : 'Grupo',
+    photos.length > 0 ? null : 'Fotos',
+  ].filter(Boolean) as string[];
 
   const importStatusText = isImporting && progress
     ? `Importando ${progress.current} de ${progress.total}`
     : photos.length > 0
       ? `${photos.length} foto${photos.length > 1 ? 's' : ''} prontas para revisar`
       : 'Nenhuma foto importada ainda';
+
+  const readinessLabel = reportReady
+    ? 'Pronto para gerar'
+    : missingItems.length === 1
+      ? `Falta ${missingItems[0]}`
+      : `Faltam ${missingItems.join(', ')}`;
 
   const handlePasswordSet = () => {
     setNeedsPasswordSetup(false);
@@ -334,56 +303,62 @@ function App() {
         {user && <AuthHeader user={user} onLogout={handleLogout} />}
 
         <main className="mx-auto mt-4 max-w-7xl">
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur xl:p-8">
-            <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr] xl:items-start">
-              <div>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="max-w-3xl">
-                    <h1 className="text-3xl font-semibold tracking-tight text-slate-950 lg:text-4xl">
-                      Gerador de Relatório Fotográfico
-                    </h1>
-                  </div>
+          <section className="rounded-[32px] border border-white/70 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur xl:p-6">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-slate-200 bg-white shadow-sm">
+                  <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
                 </div>
-                <div className="mt-6 flex flex-wrap gap-3 text-sm">
-                  <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700">
-                    BO {boNumber || 'não informado'}
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700">
-                    Versão {version || 'pendente'}
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700">
-                    Grupo {selectedGroup || 'pendente'}
-                  </span>
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight text-slate-950 lg:text-3xl">
+                    Relatório Fotográfico
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-500">{readinessLabel}</p>
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <SummaryCard
-                  label="Fotos"
-                  value={`${photos.length}`}
-                  detail={importStatusText}
-                />
-                <SummaryCard
-                  label="Descrições"
-                  value={`${describedPhotos}/${photos.length || 0}`}
-                  detail={describedPhotos === photos.length && photos.length > 0
-                    ? 'Todas as fotos têm descrição.'
-                    : 'Adicione descrições para facilitar a revisão.'}
-                />
-                <SummaryCard
-                  label="Checklist"
-                  value={`${readyFieldsCount}/3`}
-                  detail={reportReady
-                    ? 'Tudo pronto para gerar o PDF.'
-                    : 'Complete os dados do relatório.'}
-                />
+              <div className="flex flex-wrap gap-2 text-sm xl:justify-center">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                  BO {boNumber || 'pendente'}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                  Versão {version || 'pendente'}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                  Grupo {selectedGroup || 'pendente'}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                  {photos.length} foto{photos.length > 1 ? 's' : ''}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                  {describedPhotos} descriç{describedPhotos === 1 ? 'ão' : 'ões'}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row xl:justify-end">
+                <button
+                  onClick={handleGeneratePDF}
+                  className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isGeneratingPDF || isImporting || isLoading || photos.length === 0}
+                >
+                  <FileDown size={18} />
+                  {isGeneratingPDF ? 'Gerando...' : 'Gerar PDF'}
+                </button>
+                <button
+                  onClick={handleClearReport}
+                  className="inline-flex items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isGeneratingPDF || isImporting || isLoading}
+                >
+                  <RefreshCcw size={18} />
+                  Novo relatório
+                </button>
               </div>
             </div>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <section className="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
             <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                     Dados do relatório
@@ -446,113 +421,63 @@ function App() {
               )}
             </div>
 
-            <aside className="rounded-[32px] border border-white/70 bg-slate-950 p-6 text-slate-100 shadow-[0_24px_80px_rgba(15,23,42,0.18)] xl:sticky xl:top-24">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Resumo</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">Gerar PDF</h2>
-
-              <div className="mt-5 space-y-3">
-                <ChecklistItem
-                  done={boNumber.length >= 9}
-                  title="BO informado"
-                  description={boNumber.length >= 9 ? boNumber : 'Preencha no formato AB1234/25.'}
-                />
-                <ChecklistItem
-                  done={!!version && !!selectedGroup}
-                  title="Versão e grupo definidos"
-                  description={!!version && !!selectedGroup
-                    ? `Versão ${version} no Grupo ${selectedGroup}.`
-                    : 'Selecione a versão do relatório e o grupo responsável.'}
-                />
-                <ChecklistItem
-                  done={photos.length > 0}
-                  title="Imagens carregadas"
-                  description={photos.length > 0
-                    ? `${photos.length} foto${photos.length > 1 ? 's' : ''} carregada${photos.length > 1 ? 's' : ''}.`
-                    : 'Importe as imagens antes de gerar o PDF.'}
-                />
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3">
-                <button
-                  onClick={handleGeneratePDF}
-                  className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-white px-5 py-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isGeneratingPDF || isImporting || isLoading || photos.length === 0}
-                >
-                  <FileDown size={18} />
-                  {isGeneratingPDF ? 'Gerando PDF...' : 'Gerar PDF'}
-                </button>
-                <button
-                  onClick={handleClearReport}
-                  className="inline-flex items-center justify-center gap-2 rounded-[22px] border border-slate-700 bg-slate-900 px-5 py-4 text-sm font-medium text-slate-100 transition hover:border-slate-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isGeneratingPDF || isImporting || isLoading}
-                >
-                  <RefreshCcw size={18} />
-                  Iniciar novo relatório
-                </button>
-              </div>
-            </aside>
-          </section>
-
-          <section className="mt-6 rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
-              </div>
-              <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
-                {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
-              </div>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,.heic,.heif"
-              multiple
-              className="hidden"
-              onChange={handleImportPhotos}
-              disabled={isImporting || isLoading}
-            />
-
-            <div
-              role="button"
-              tabIndex={0}
-              aria-disabled={isImporting || isLoading}
-              onClick={openFilePicker}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  openFilePicker();
-                }
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setIsDragActive(true);
-              }}
-              onDragLeave={(event) => {
-                event.preventDefault();
-                setIsDragActive(false);
-              }}
-              onDrop={(event) => void handleDrop(event)}
-              className={`mt-6 rounded-[28px] border-2 border-dashed px-6 py-10 transition ${isDragActive
-                ? 'border-blue-400 bg-blue-50'
-                : 'border-slate-300 bg-slate-50/80 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-            >
-              <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-slate-950 text-white shadow-lg">
-                  {isImporting ? <Upload className="animate-bounce" size={28} /> : <FileImage size={28} />}
+            <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] backdrop-blur">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
                 </div>
-                <h3 className="mt-5 text-xl font-semibold text-slate-950">
-                  {isImporting ? 'Importação em andamento' : 'Importar novas imagens'}
-                </h3>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
-                  {isImporting && progress
-                    ? `Processando ${progress.current} de ${progress.total}: ${progress.currentFileName}`
-                    : 'JPEG, PNG, WebP, HEIC e HEIF.'}
-                </p>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                  <Upload size={16} />
-                  Arraste ou clique para selecionar
+                <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+                  {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
+                </div>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.heic,.heif"
+                multiple
+                className="hidden"
+                onChange={handleImportPhotos}
+                disabled={isImporting || isLoading}
+              />
+
+              <div
+                role="button"
+                tabIndex={0}
+                aria-disabled={isImporting || isLoading}
+                onClick={openFilePicker}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openFilePicker();
+                  }
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDragActive(true);
+                }}
+                onDragLeave={(event) => {
+                  event.preventDefault();
+                  setIsDragActive(false);
+                }}
+                onDrop={(event) => void handleDrop(event)}
+                className={`mt-6 rounded-[28px] border-2 border-dashed px-6 py-10 transition ${isDragActive
+                  ? 'border-blue-400 bg-blue-50'
+                  : 'border-slate-300 bg-slate-50/80 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+              >
+                <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-slate-950 text-white shadow-lg">
+                    {isImporting ? <Upload className="animate-bounce" size={24} /> : <FileImage size={24} />}
+                  </div>
+                  <h3 className="mt-5 text-lg font-semibold text-slate-950">
+                    {isImporting ? 'Importação em andamento' : 'Selecionar imagens'}
+                  </h3>
+                  <p className="mt-2 max-w-lg text-sm leading-6 text-slate-600">
+                    {isImporting && progress
+                      ? `Processando ${progress.current} de ${progress.total}: ${progress.currentFileName}`
+                      : 'Arraste os arquivos ou clique para selecionar.'}
+                  </p>
                 </div>
               </div>
             </div>
