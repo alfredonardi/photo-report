@@ -9,8 +9,6 @@
  * - Suporta HEIC/HEIF (conversão automática para JPEG)
  */
 
-import heic2any from 'heic2any';
-
 export const imageUtils = {
   /**
    * Detecta se o navegador/dispositivo atual suporta conversão de HEIC
@@ -37,6 +35,7 @@ export const imageUtils = {
   async convertHeicToJpeg(file: File): Promise<Blob> {
     try {
       console.log(`🔄 Convertendo HEIC para JPEG: ${file.name}`);
+      const { default: heic2any } = await import('heic2any');
 
       const convertedBlob = await heic2any({
         blob: file,
@@ -86,7 +85,7 @@ export const imageUtils = {
   },
   /**
    * Comprime e redimensiona imagem UMA ÚNICA VEZ
-   * Usado ao importar/capturar foto
+   * Usado ao importar foto
    *
    * @param base64Str - Imagem em base64
    * @param maxWidth - Largura máxima (default: 1600px para ~200 DPI no PDF)

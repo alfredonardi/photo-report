@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Configuração do Supabase
@@ -13,9 +14,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 // Verifica se as credenciais estão configuradas
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseConfigured) {
   console.warn(
     '⚠️ Supabase não configurado. Autenticação e PDFs não funcionarão.\n' +
     'Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify.\n' +
@@ -27,17 +29,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * Cliente do Supabase
  * Usado para autenticação, storage e database
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+export const supabase: SupabaseClient | null = supabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
 
 /**
  * Verifica se o Supabase está configurado
  */
 export const isSupabaseConfigured = (): boolean => {
-  return !!(supabaseUrl && supabaseAnonKey);
+  return supabaseConfigured;
 };

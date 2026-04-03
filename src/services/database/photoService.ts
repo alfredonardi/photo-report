@@ -1,5 +1,6 @@
 import { dbPromise } from './indexedDB';
 import { Photo } from '../../types';
+import { movePhotoToPosition, removePhotoAndReindex, sortPhotosByPosition } from '../../utils/photoOrder';
 
 /**
  * Serviço para gerenciar operações CRUD de fotos no IndexedDB
@@ -11,7 +12,8 @@ export const photoService = {
    */
   async getAllPhotos(): Promise<Photo[]> {
     const db = await dbPromise;
-    return db.getAll('photos');
+    const photos = await db.getAllFromIndex('photos', 'by-position');
+    return sortPhotosByPosition(photos);
   },
 
   /**
@@ -20,7 +22,7 @@ export const photoService = {
    *
    * @param photoData - Imagem já processada (comprimida com compressOnce)
    */
-  async addPhoto(photoData: string): Promise<number> {
+  async addPhoto(photoData: string): Promise<Photo> {
     const db = await dbPromise;
     const photos = await this.getAllPhotos();
     const maxPosition = photos.length > 0
@@ -36,12 +38,17 @@ export const photoService = {
       rotationMetadata: 0, // Nova estrutura: apenas metadata (0, 90, 180, 270)
     };
 
-    return db.add('photos', newPhoto as Photo);
+    const id = await db.add('photos', newPhoto as Photo);
+
+    return {
+      ...newPhoto,
+      id: Number(id),
+    };
   },
 
   /**
    * Atualiza uma foto existente
-   * Se a posição mudar, faz swap com a foto na posição alvo
+   * Se a posição mudar, reordena todas as posições afetadas
    */
   async updatePhoto(id: number, updates: Partial<Omit<Photo, 'id'>>): Promise<void> {
     const db = await dbPromise;
@@ -54,11 +61,21 @@ export const photoService = {
     // Se mudou a posição, troca com a foto que está na posição alvo
     if (updates.position !== undefined && updates.position !== photo.position) {
       const allPhotos = await this.getAllPhotos();
-      const targetPhoto = allPhotos.find(p => p.position === updates.position);
-      
-      if (targetPhoto) {
-        await db.put('photos', { ...targetPhoto, position: photo.position });
+
+      const reorderedPhotos = movePhotoToPosition(allPhotos, id, updates.position).map((currentPhoto) =>
+        currentPhoto.id === id
+          ? { ...currentPhoto, ...updates, position: updates.position }
+          : currentPhoto
+      );
+
+      const tx = db.transaction('photos', 'readwrite');
+
+      for (const reorderedPhoto of reorderedPhotos) {
+        await tx.store.put(reorderedPhoto);
       }
+
+      await tx.done;
+      return;
     }
 
     await db.put('photos', { ...photo, ...updates });
@@ -74,17 +91,17 @@ export const photoService = {
     
     if (!photo) return;
 
-    await db.delete('photos', id);
-
-    // Reordena as fotos que vinham depois
     const allPhotos = await this.getAllPhotos();
-    const photosToUpdate = allPhotos
-      .filter(p => p.position > photo.position)
-      .sort((a, b) => a.position - b.position);
+    const remainingPhotos = removePhotoAndReindex(allPhotos, id);
+    const tx = db.transaction('photos', 'readwrite');
 
-    for (const p of photosToUpdate) {
-      await db.put('photos', { ...p, position: p.position - 1 });
+    await tx.store.delete(id);
+
+    for (const currentPhoto of remainingPhotos) {
+      await tx.store.put(currentPhoto);
     }
+
+    await tx.done;
   },
 
   /**

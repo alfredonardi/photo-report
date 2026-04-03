@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { PhotoList } from './components/PhotoList';
 import { BOInput } from './components/BOInput';
-import { CameraButton } from './components/CameraButton';
 import { AppFooter } from './components/AppFooter';
 import { Login } from './components/Login';
 import { SetPassword } from './components/SetPassword';
@@ -11,14 +10,13 @@ import { usePhotos } from './hooks/usePhotos';
 import { usePhotoImport } from './hooks/usePhotoImport';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAuth } from './hooks/useAuth';
-import { pdfGenerator } from './utils/pdfGenerator';
 import { confirmations } from './utils/confirmations';
 import { showToast } from './utils/toast';
-import { supabase } from './services/supabase/config';
+import { isSupabaseConfigured, supabase } from './services/supabase/config';
 import logo from './assets/logo.jpg';
 
 function App() {
-  const { user, loading: authLoading, login, logout, isAuthenticated } = useAuth();
+  const { user, loading: authLoading, login, logout, isAuthenticated, isConfigured: isAuthConfigured } = useAuth();
   const [selectedGroup, setSelectedGroup] = useLocalStorage('selectedGroup', '');
   const [boNumber, setBoNumber] = useLocalStorage('boNumber', '');
   const [version, setVersion] = useLocalStorage('version', '');
@@ -45,7 +43,7 @@ function App() {
    */
   useEffect(() => {
     const checkPasswordSetup = async () => {
-      if (!user) return;
+      if (!user || !supabase) return;
 
       try {
         // Pega os dados do usuário
@@ -108,6 +106,8 @@ function App() {
 
     setIsGeneratingPDF(true);
     try {
+      const { pdfGenerator } = await import('./utils/pdfGenerator');
+
       await pdfGenerator.generatePDF(photos, {
         boNumber,
         version,
@@ -161,6 +161,33 @@ function App() {
   }
 
   // Se não estiver autenticado, mostra tela de login
+  if (!isAuthConfigured || !isSupabaseConfigured()) {
+    return (
+      <>
+        <Toaster />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+          <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-28 h-28 mx-auto mb-4 object-contain"
+            />
+            <h1 className="text-2xl font-bold text-gray-800 mb-3">
+              Configuração do Supabase pendente
+            </h1>
+            <p className="text-gray-600 mb-3">
+              O app depende de autenticação via Supabase. Configure as variáveis
+              `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` para liberar o acesso.
+            </p>
+            <p className="text-sm text-gray-500">
+              As instruções do projeto estão em `SUPABASE_AUTH_SETUP.md` e `SUPABASE_SETUP.md`.
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <>
@@ -232,7 +259,7 @@ function App() {
         </select>
       </div>
 
-      {/* Photo Import/Capture Buttons */}
+      {/* Photo Import Button */}
       <div className="flex flex-col gap-3 mb-5">
         <input
           type="file"
@@ -257,7 +284,6 @@ function App() {
             'Importar Fotos'
           )}
         </button>
-        <CameraButton onPhotoCapture={addPhoto} disabled={isLoading} />
       </div>
 
       {/* Error Message */}

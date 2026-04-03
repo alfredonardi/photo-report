@@ -94,6 +94,10 @@ export const SetPassword: React.FC<SetPasswordProps> = ({ onPasswordSet }) => {
     setIsLoading(true);
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase não configurado.');
+      }
+
       // Atualiza a senha do usuário atual
       const { error } = await supabase.auth.updateUser({
         password: password,

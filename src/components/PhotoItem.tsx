@@ -22,7 +22,7 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [localDescription, setLocalDescription] = useState(photo.description);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRemove = () => {
     const confirmRemoval = window.confirm(
@@ -54,12 +54,12 @@ export const PhotoItem: React.FC<PhotoItemProps> = ({
   };
 
   const handleRotateRight = () => {
-    const newRotation = (photo.rotation + 90) % 360;
+    const newRotation = (rotation + 90) % 360;
     onRotate(photo.id, newRotation);
   };
 
   const handleRotateLeft = () => {
-    const newRotation = (photo.rotation - 90 + 360) % 360;
+    const newRotation = (rotation - 90 + 360) % 360;
     onRotate(photo.id, newRotation);
   };
 

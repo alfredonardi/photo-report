@@ -1,7 +1,4 @@
-import React from 'react';
-import { pdf } from '@react-pdf/renderer';
 import { Photo, ShareError } from '../types';
-import { PDFDocument } from './pdf/PDFDocument';
 import { formatters } from './formatters';
 import { pdfUploadService } from '../services/supabase/pdfUploadService';
 import { imageUtils } from './imageProcessing';
@@ -68,6 +65,11 @@ export const pdfGenerator = {
       );
 
       console.log('✅ Fotos processadas com sucesso!');
+
+      const [{ pdf }, { PDFDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('./pdf/PDFDocument'),
+      ]);
 
       // Generate PDF using react-pdf
       const blob = await pdf(

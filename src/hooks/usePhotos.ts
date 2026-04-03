@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Photo, photoService } from '../services/database/photoService';
 import { imageUtils } from '../utils/imageProcessing';
+import { movePhotoToPosition, removePhotoAndReindex, sortPhotosByPosition } from '../utils/photoOrder';
 
 /**
  * Hook personalizado para gerenciar fotos
@@ -47,10 +48,9 @@ export const usePhotos = () => {
       const compressedPhoto = await imageUtils.compressOnce(photoData, 1600, 1200, 0.95);
 
       // Adiciona ao banco
-      await photoService.addPhoto(compressedPhoto);
+      const savedPhoto = await photoService.addPhoto(compressedPhoto);
 
-      // Recarrega lista
-      await loadPhotos();
+      setPhotos(prev => sortPhotosByPosition([...prev, savedPhoto]));
     } catch (err) {
       const errorMessage = 'Não foi possível adicionar a foto. Tente novamente com outra imagem.';
       setError(errorMessage);
@@ -58,7 +58,7 @@ export const usePhotos = () => {
       // Propaga erro para que usePhotoImport possa detectar
       throw err;
     }
-  }, [loadPhotos]);
+  }, []);
 
   /**
    * Atualiza descrição de uma foto
@@ -104,27 +104,8 @@ export const usePhotos = () => {
 
     try {
       setError(null);
-      
-      // FIX: Atualização otimista da UI
-      const oldPosition = photo.position;
-      const updatedPhotos = photos.map(p => {
-        if (p.id === id) return { ...p, position: newPosition };
-        if (oldPosition < newPosition) {
-          // Move para baixo: decrementa posições entre old e new
-          if (p.position > oldPosition && p.position <= newPosition) {
-            return { ...p, position: p.position - 1 };
-          }
-        } else {
-          // Move para cima: incrementa posições entre new e old
-          if (p.position >= newPosition && p.position < oldPosition) {
-            return { ...p, position: p.position + 1 };
-          }
-        }
-        return p;
-      });
-      
-      setPhotos(updatedPhotos);
-      
+
+      setPhotos(movePhotoToPosition(photos, id, newPosition));
       await photoService.updatePhoto(id, { position: newPosition });
     } catch (err) {
       const errorMessage = 'Erro ao atualizar posição.';
@@ -193,10 +174,8 @@ export const usePhotos = () => {
   const removePhoto = useCallback(async (id: number): Promise<void> => {
     try {
       setError(null);
-      
-      // FIX: Atualização otimista
-      setPhotos(prev => prev.filter(p => p.id !== id));
-      
+
+      setPhotos(prev => removePhotoAndReindex(prev, id));
       await photoService.removePhoto(id);
     } catch (err) {
       const errorMessage = 'Erro ao remover foto.';

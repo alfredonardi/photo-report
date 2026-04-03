@@ -32,7 +32,7 @@ export const pdfUploadService = {
   ): Promise<string | null> {
     try {
       // Verifica se Supabase está configurado
-      if (!isSupabaseConfigured()) {
+      if (!isSupabaseConfigured() || !supabase) {
         console.log('📦 Supabase não configurado - PDF não será salvo na nuvem');
         return null;
       }
@@ -104,6 +104,10 @@ export const pdfUploadService = {
         return [];
       }
 
+      if (!supabase) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('pdf_reports')
         .select('*')
@@ -128,6 +132,10 @@ export const pdfUploadService = {
   async searchByBO(boNumber: string): Promise<PDFReportRecord[]> {
     try {
       if (!isSupabaseConfigured()) {
+        return [];
+      }
+
+      if (!supabase) {
         return [];
       }
 
