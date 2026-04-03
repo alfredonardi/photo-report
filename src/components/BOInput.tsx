@@ -5,12 +5,15 @@ interface BOInputProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
+  id?: string;
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
-export const BOInput: React.FC<BOInputProps> = ({ value, onChange, required }) => {
+export const BOInput: React.FC<BOInputProps> = ({ value, onChange, required, id, inputRef }) => {
   return (
     <div className="w-full">
       <IMaskInput
+        id={id}
         className="bo-input"
         mask={[
           { mask: '' },
@@ -26,6 +29,7 @@ export const BOInput: React.FC<BOInputProps> = ({ value, onChange, required }) =
         placeholder="AB1234/25"
         title="Formato: AB1234/25"
         required={required}
+        inputRef={inputRef}
       />
     </div>
   );

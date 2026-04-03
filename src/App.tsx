@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import {
+  ArrowUpRight,
   FileDown,
   FileImage,
   RefreshCcw,
@@ -39,6 +40,11 @@ function App() {
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const boInputRef = useRef<HTMLInputElement>(null);
+  const versionSelectRef = useRef<HTMLSelectElement>(null);
+  const groupSelectRef = useRef<HTMLSelectElement>(null);
+  const importDropzoneRef = useRef<HTMLDivElement>(null);
+  const photosSectionRef = useRef<HTMLElement>(null);
 
   const {
     photos,
@@ -92,10 +98,10 @@ function App() {
     [photos]
   );
   const summaryItems = [
-    { label: 'BO', value: boNumber || 'Pendente' },
-    { label: 'Versão', value: version || 'Pendente' },
-    { label: 'Grupo', value: selectedGroup || 'Pendente' },
-    { label: 'Fotos', value: `${photos.length} foto${photos.length > 1 ? 's' : ''}` },
+    { key: 'bo', label: 'BO', value: boNumber || 'Pendente', pending: boNumber.length < 9 },
+    { key: 'version', label: 'Versão', value: version || 'Pendente', pending: !version },
+    { key: 'group', label: 'Grupo', value: selectedGroup || 'Pendente', pending: !selectedGroup },
+    { key: 'photos', label: 'Fotos', value: `${photos.length} foto${photos.length > 1 ? 's' : ''}`, pending: photos.length === 0 },
   ];
   const hasDraft = Boolean(boNumber || version || selectedGroup || photos.length > 0);
 
@@ -118,6 +124,45 @@ function App() {
     : missingItems.length === 1
       ? `Falta ${missingItems[0]}`
       : `Faltam ${missingItems.join(', ')}`;
+
+  const focusTarget = (target: HTMLElement | null) => {
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    window.setTimeout(() => {
+      target.focus({ preventScroll: true });
+
+      if (target instanceof HTMLInputElement) {
+        target.select();
+      }
+    }, 180);
+  };
+
+  const handleSummaryItemClick = (key: string) => {
+    switch (key) {
+      case 'bo':
+        focusTarget(boInputRef.current);
+        break;
+      case 'version':
+        focusTarget(versionSelectRef.current);
+        break;
+      case 'group':
+        focusTarget(groupSelectRef.current);
+        break;
+      case 'photos':
+        if (photos.length === 0) {
+          focusTarget(importDropzoneRef.current);
+        } else {
+          photosSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        break;
+      default:
+        break;
+    }
+  };
 
   const handlePasswordSet = () => {
     setNeedsPasswordSetup(false);
@@ -324,19 +369,33 @@ function App() {
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-4">
-              <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {summaryItems.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-[18px] border border-slate-200/80 bg-slate-50/72 px-3 py-2.5 sm:px-4 sm:py-3"
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => handleSummaryItemClick(item.key)}
+                    className={`group rounded-[18px] border px-3 py-2.5 text-left transition sm:px-4 sm:py-3 ${item.pending
+                      ? 'border-blue-200/90 bg-blue-50/70 hover:border-blue-300 hover:bg-blue-50'
+                      : 'border-slate-200/80 bg-slate-50/72 hover:border-slate-300 hover:bg-white'}`}
+                    aria-label={`${item.label}: ${item.value}`}
                   >
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      {item.label}
-                    </dt>
-                    <dd className="mt-1 truncate text-sm font-medium text-slate-800">{item.value}</dd>
-                  </div>
+                    <span className="flex items-start justify-between gap-3">
+                      <span className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${item.pending ? 'text-blue-700' : 'text-slate-500'}`}>
+                        {item.label}
+                      </span>
+                      <ArrowUpRight
+                        size={14}
+                        className={`shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 ${item.pending ? 'text-blue-500' : 'text-slate-400'}`}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className={`mt-1 block truncate text-sm font-medium ${item.pending ? 'text-slate-950' : 'text-slate-800'}`}>
+                      {item.value}
+                    </span>
+                  </button>
                 ))}
-              </dl>
+              </div>
 
               <div className="hidden items-center gap-2 lg:flex">
                 <button
@@ -373,7 +432,13 @@ function App() {
               <div className="mt-5 grid gap-3 md:grid-cols-3 md:gap-4">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Boletim de ocorrência</label>
-                  <BOInput value={boNumber} onChange={setBoNumber} required />
+                  <BOInput
+                    id="bo-number"
+                    value={boNumber}
+                    onChange={setBoNumber}
+                    required
+                    inputRef={boInputRef}
+                  />
                 </div>
 
                 <div>
@@ -386,6 +451,7 @@ function App() {
                     value={version}
                     onChange={(event) => setVersion(event.target.value)}
                     disabled={isLoading}
+                    ref={versionSelectRef}
                   >
                     <option value="">Selecione a versão</option>
                     {[...Array(5)].map((_, index) => (
@@ -406,6 +472,7 @@ function App() {
                     value={selectedGroup}
                     onChange={(event) => setSelectedGroup(event.target.value)}
                     disabled={isLoading}
+                    ref={groupSelectRef}
                   >
                     <option value="">Selecione o grupo</option>
                     {[1, 2, 3, 4, 5].map((num) => (
@@ -446,6 +513,7 @@ function App() {
               />
 
               <div
+                ref={importDropzoneRef}
                 role="button"
                 tabIndex={0}
                 aria-disabled={isImporting || isLoading}
@@ -486,7 +554,10 @@ function App() {
             </div>
           </section>
 
-          <section className="mt-4 rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:mt-6 sm:p-6">
+          <section
+            ref={photosSectionRef}
+            className="mt-4 rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:mt-6 sm:p-6"
+          >
             <div className="mb-4 flex flex-col gap-3 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">Fotos</p>
