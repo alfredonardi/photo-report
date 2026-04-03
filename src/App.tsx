@@ -91,6 +91,13 @@ function App() {
     () => photos.filter((photo) => photo.description.trim().length > 0).length,
     [photos]
   );
+  const summaryItems = [
+    { label: 'BO', value: boNumber || 'Pendente' },
+    { label: 'Versão', value: version || 'Pendente' },
+    { label: 'Grupo', value: selectedGroup || 'Pendente' },
+    { label: 'Fotos', value: `${photos.length} foto${photos.length > 1 ? 's' : ''}` },
+  ];
+  const hasDraft = Boolean(boNumber || version || selectedGroup || photos.length > 0);
 
   const reportReady = boNumber.length >= 9 && !!version && !!selectedGroup && photos.length > 0;
   const missingItems = [
@@ -299,46 +306,42 @@ function App() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen px-4 pb-10 pt-4 lg:px-6">
+      <div className={`min-h-screen px-4 pt-3 lg:px-6 ${hasDraft ? 'pb-32 lg:pb-10' : 'pb-10'}`}>
         {user && <AuthHeader user={user} onLogout={handleLogout} />}
 
-        <main className="mx-auto mt-4 max-w-7xl">
-          <section className="rounded-[32px] border border-white/70 bg-white/92 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.05)] backdrop-blur xl:p-6">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-slate-200 bg-white">
-                  <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-semibold tracking-tight text-slate-950 lg:text-3xl">
-                    Relatório Fotográfico
-                  </h1>
-                  <p className="mt-1 text-sm text-slate-500">{readinessLabel}</p>
-                </div>
+        <main className="mx-auto mt-3 max-w-7xl">
+          <section className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.045)] backdrop-blur sm:p-5 xl:p-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border border-slate-200/80 bg-white sm:h-14 sm:w-14 sm:rounded-[22px]">
+                <img src={logo} alt="Logo" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
               </div>
-
-              <div className="flex flex-wrap gap-2 text-sm xl:justify-center">
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
-                  BO {boNumber || 'pendente'}
-                </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
-                  Versão {version || 'pendente'}
-                </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
-                  Grupo {selectedGroup || 'pendente'}
-                </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
-                  {photos.length} foto{photos.length > 1 ? 's' : ''}
-                </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-slate-700">
-                  {describedPhotos} descriç{describedPhotos === 1 ? 'ão' : 'ões'}
-                </span>
+              <div className="min-w-0">
+                <h1 className="text-[1.6rem] font-semibold tracking-tight text-slate-950 sm:text-2xl lg:text-3xl">
+                  Relatório Fotográfico
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">{readinessLabel}</p>
               </div>
+            </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row xl:justify-end">
+            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-4">
+              <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {summaryItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[18px] border border-slate-200/80 bg-slate-50/72 px-3 py-2.5 sm:px-4 sm:py-3"
+                  >
+                    <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      {item.label}
+                    </dt>
+                    <dd className="mt-1 truncate text-sm font-medium text-slate-800">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div className="hidden items-center gap-2 lg:flex">
                 <button
                   onClick={handleGeneratePDF}
-                  className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-[20px] bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isGeneratingPDF || isImporting || isLoading || photos.length === 0}
                 >
                   <FileDown size={18} />
@@ -346,7 +349,7 @@ function App() {
                 </button>
                 <button
                   onClick={handleClearReport}
-                  className="inline-flex items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-slate-200 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isGeneratingPDF || isImporting || isLoading}
                 >
                   <RefreshCcw size={18} />
@@ -356,18 +359,18 @@ function App() {
             </div>
           </section>
 
-          <section className="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <div className="rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
+          <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-6">
               <div>
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">
                     Dados do relatório
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Informações principais</h2>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Informações principais</h2>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="mt-5 grid gap-3 md:grid-cols-3 md:gap-4">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Boletim de ocorrência</label>
                   <BOInput value={boNumber} onChange={setBoNumber} required />
@@ -415,19 +418,19 @@ function App() {
               </div>
 
               {error && (
-                <div className="mt-5 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:mt-5 sm:rounded-[24px]">
                   {error}
                 </div>
               )}
             </div>
 
-            <div className="rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
+            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Importação</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Importar fotos</h2>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">Importação</p>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Importar fotos</h2>
                 </div>
-                <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-sm text-slate-600">
+                <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-600 sm:px-4 sm:py-2 sm:text-sm">
                   {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
                 </div>
               </div>
@@ -462,15 +465,15 @@ function App() {
                   setIsDragActive(false);
                 }}
                 onDrop={(event) => void handleDrop(event)}
-                className={`mt-6 rounded-[28px] border-2 border-dashed px-6 py-10 transition ${isDragActive
+                className={`mt-4 rounded-[24px] border-2 border-dashed px-5 py-8 transition sm:mt-6 sm:rounded-[28px] sm:px-6 sm:py-10 ${isDragActive
                   ? 'border-blue-400 bg-blue-50'
                   : 'border-slate-300/90 bg-slate-50/70 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
               >
                 <div className="mx-auto flex max-w-xl flex-col items-center text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-slate-950 text-white">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-slate-950 text-white sm:h-14 sm:w-14 sm:rounded-[22px]">
                     {isImporting ? <Upload className="animate-bounce" size={24} /> : <FileImage size={24} />}
                   </div>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-950">
+                  <h3 className="mt-4 text-base font-semibold text-slate-950 sm:mt-5 sm:text-lg">
                     {isImporting ? 'Importação em andamento' : 'Selecionar imagens'}
                   </h3>
                   <p className="mt-2 max-w-lg text-sm leading-6 text-slate-600">
@@ -483,24 +486,24 @@ function App() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.045)] backdrop-blur">
-            <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <section className="mt-4 rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:mt-6 sm:p-6">
+            <div className="mb-4 flex flex-col gap-3 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Fotos</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Organizar imagens</h2>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">Fotos</p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Organizar imagens</h2>
               </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-slate-600">
+              <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2">
                   {photos.length} foto{photos.length > 1 ? 's' : ''}
                 </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-4 py-2 text-slate-600">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2">
                   {describedPhotos} com descrição
                 </span>
               </div>
             </div>
 
             {isLoading ? (
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 px-6 py-14 text-center">
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-5 py-10 text-center sm:rounded-[28px] sm:px-6 sm:py-14">
                 <div className="text-4xl">⏳</div>
                 <p className="mt-3 text-sm leading-6 text-slate-600">Carregando imagens do relatório...</p>
               </div>
@@ -518,6 +521,34 @@ function App() {
           <AppFooter />
         </main>
       </div>
+
+      {hasDraft && (
+        <div className="fixed inset-x-4 bottom-4 z-40 lg:hidden">
+          <div className="rounded-[24px] border border-white/80 bg-white/94 p-3 shadow-[0_18px_36px_rgba(15,23,42,0.08)] backdrop-blur">
+            {!reportReady && (
+              <p className="mb-2 text-xs font-medium text-slate-500">{readinessLabel}</p>
+            )}
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+              <button
+                onClick={handleGeneratePDF}
+                className="inline-flex items-center justify-center gap-2 rounded-[18px] bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isGeneratingPDF || isImporting || isLoading || photos.length === 0}
+              >
+                <FileDown size={18} />
+                {isGeneratingPDF ? 'Gerando...' : 'Gerar PDF'}
+              </button>
+              <button
+                onClick={handleClearReport}
+                className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isGeneratingPDF || isImporting || isLoading}
+              >
+                <RefreshCcw size={16} />
+                Novo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={isPDFConfirmOpen}

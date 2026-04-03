@@ -25,11 +25,11 @@ export const PhotoList: React.FC<PhotoListProps> = ({
 
   if (sortedPhotos.length === 0) {
     return (
-      <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50/80 px-6 py-14 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-white text-slate-700 shadow-sm">
+      <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 px-5 py-10 text-center sm:rounded-[28px] sm:px-6 sm:py-14">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-white text-slate-700 shadow-sm sm:h-16 sm:w-16 sm:rounded-[22px]">
           <ImagePlus size={28} />
         </div>
-        <h3 className="mt-5 text-xl font-semibold text-slate-950">Nenhuma foto adicionada</h3>
+        <h3 className="mt-4 text-lg font-semibold text-slate-950 sm:mt-5 sm:text-xl">Nenhuma foto adicionada</h3>
       </div>
     );
   }
