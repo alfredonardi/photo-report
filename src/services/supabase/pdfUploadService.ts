@@ -33,11 +33,8 @@ export const pdfUploadService = {
     try {
       // Verifica se Supabase está configurado
       if (!isSupabaseConfigured() || !supabase) {
-        console.log('📦 Supabase não configurado - PDF não será salvo na nuvem');
         return null;
       }
-
-      console.log('☁️ Iniciando upload do PDF para a nuvem...');
 
       // Gera um nome único para o arquivo usando timestamp
       const timestamp = new Date().getTime();
@@ -58,8 +55,6 @@ export const pdfUploadService = {
         return null;
       }
 
-      console.log('✅ PDF enviado para nuvem:', uploadData.path);
-
       // Salva metadados na tabela
       const { error: metadataError } = await supabase
         .from('pdf_reports') // Nome da tabela (você vai criar no Supabase)
@@ -78,8 +73,6 @@ export const pdfUploadService = {
       if (metadataError) {
         console.error('⚠️ PDF salvo mas erro ao salvar metadados:', metadataError);
         // Não retorna null porque o arquivo foi salvo
-      } else {
-        console.log('✅ Metadados salvos com sucesso!');
       }
 
       // Retorna a URL pública do arquivo

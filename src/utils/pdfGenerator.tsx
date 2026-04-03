@@ -36,7 +36,6 @@ export const pdfGenerator = {
       const sortedPhotos = [...photos].sort((a, b) => a.position - b.position);
 
       // PROCESSA FOTOS: Aplica rotação física UMA VEZ da imagem original
-      console.log('🔄 Processando fotos para o PDF...');
       const processedPhotos = await Promise.all(
         sortedPhotos.map(async (photo) => {
           const rotationAngle = photo.rotationMetadata || photo.rotation || 0;
@@ -50,7 +49,6 @@ export const pdfGenerator = {
           }
 
           // Aplica rotação física UMA VEZ da imagem original (quality 0.85 para PDF)
-          console.log(`  📐 Rotacionando foto ${photo.position} em ${rotationAngle}° para o PDF...`);
           const rotatedImage = await imageUtils.rotatePhysically(
             photo.originalPhoto || photo.photo,
             rotationAngle,
@@ -63,8 +61,6 @@ export const pdfGenerator = {
           };
         })
       );
-
-      console.log('✅ Fotos processadas com sucesso!');
 
       const [{ pdf }, { PDFDocument }] = await Promise.all([
         import('@react-pdf/renderer'),
@@ -124,11 +120,7 @@ export const pdfGenerator = {
           const error = shareError as ShareError;
           // Se usuário cancelou, faz download direto
           if (error.name === 'AbortError') {
-            console.log('Compartilhamento cancelado, fazendo download...');
             // Continua para o download abaixo
-          } else {
-            // Outro erro, continua para o download
-            console.warn('Erro ao compartilhar, fazendo download:', error);
           }
         }
       }

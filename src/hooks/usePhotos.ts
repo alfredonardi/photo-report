@@ -114,7 +114,6 @@ export const usePhotos = () => {
    */
   const updatePhotoDescription = useCallback((id: number, description: string): void => {
     if (description.length > 78) {
-      console.warn('Descrição excede 78 caracteres, truncando...');
       description = description.substring(0, 78);
     }
 
@@ -152,7 +151,6 @@ export const usePhotos = () => {
 
     // FIX: Valida range da posição
     if (newPosition < 1 || newPosition > photos.length) {
-      console.error('Posição inválida:', newPosition);
       return;
     }
 
@@ -178,7 +176,6 @@ export const usePhotos = () => {
   const rotatePhoto = useCallback(async (id: number, newRotation: number): Promise<void> => {
     // Valida valores de rotação
     if (![0, 90, 180, 270].includes(newRotation)) {
-      console.error('Rotação inválida:', newRotation);
       return;
     }
 
@@ -211,8 +208,6 @@ export const usePhotos = () => {
         rotationMetadata: newRotation,
         rotation: newRotation, // Mantém compatibilidade
       });
-
-      console.log(`✅ Foto ${id} rotacionada para ${newRotation}° (metadata only - zero perda!)`);
     } catch (err) {
       const errorMessage = 'Não foi possível rotacionar a foto. Tente novamente.';
       setError(errorMessage);

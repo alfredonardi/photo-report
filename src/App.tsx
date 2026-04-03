@@ -79,7 +79,6 @@ function App() {
           currentUser.invited_at !== null;
 
         if (isInviteUser && passwordSet !== true) {
-          console.log('👤 Usuário veio de convite - precisa definir senha');
           setNeedsPasswordSetup(true);
         } else {
           setNeedsPasswordSetup(false);

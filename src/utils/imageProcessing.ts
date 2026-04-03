@@ -11,22 +11,6 @@
 
 export const imageUtils = {
   /**
-   * Detecta se o navegador/dispositivo atual suporta conversão de HEIC
-   *
-   * @returns true se HEIC é suportado (geralmente mobile), false caso contrário
-   */
-  isHeicSupported(): boolean {
-    // HEIC funciona melhor em dispositivos móveis
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    // Safari no Mac também suporta nativamente
-    const isSafariMac = /Macintosh/.test(navigator.userAgent) &&
-                        /Safari/.test(navigator.userAgent) &&
-                        !/Chrome/.test(navigator.userAgent);
-
-    return isMobile || isSafariMac;
-  },
-  /**
    * Converte imagem HEIC/HEIF para JPEG
    *
    * @param file - Arquivo HEIC
@@ -34,7 +18,6 @@ export const imageUtils = {
    */
   async convertHeicToJpeg(file: File): Promise<Blob> {
     try {
-      console.log(`🔄 Convertendo HEIC para JPEG: ${file.name}`);
       const { default: heic2any } = await import('heic2any');
 
       const convertedBlob = await heic2any({
@@ -43,13 +26,9 @@ export const imageUtils = {
         quality: 0.95,
       });
 
-      console.log(`✅ HEIC convertido com sucesso: ${file.name}`);
-
       // heic2any pode retornar array ou blob único
       return Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-    } catch (error) {
-      console.error('❌ Erro ao converter HEIC:', error);
-
+    } catch {
       // Mensagem específica baseada no dispositivo
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const isSafariMac = /Macintosh/.test(navigator.userAgent) &&
@@ -69,20 +48,6 @@ export const imageUtils = {
     }
   },
 
-  /**
-   * Converte File ou Blob para base64
-   *
-   * @param blob - Arquivo ou Blob
-   * @returns String base64
-   */
-  async blobToBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  },
   /**
    * Comprime e redimensiona imagem UMA ÚNICA VEZ
    * Usado ao importar foto
@@ -153,19 +118,6 @@ export const imageUtils = {
         reject(new Error('Falha ao carregar a imagem'));
       };
     });
-  },
-
-  /**
-   * DEPRECADO - Use compressOnce
-   * Mantido para compatibilidade com código antigo
-   */
-  async resizeAndRotateToLandscape(
-    base64Str: string,
-    maxWidth = 1600,
-    maxHeight = 1200
-  ): Promise<string> {
-    console.warn('resizeAndRotateToLandscape está DEPRECADO. Use compressOnce()');
-    return this.compressOnce(base64Str, maxWidth, maxHeight, 0.95);
   },
 
   /**
@@ -249,93 +201,4 @@ export const imageUtils = {
     });
   },
 
-  /**
-   * DEPRECADO - Não use para rotações interativas!
-   * Use rotatePhysically apenas para gerar PDF.
-   *
-   * Para rotações na UI, atualize apenas rotationMetadata e use CSS.
-   */
-  async rotateImage(imageDataUrl: string, rotation: number): Promise<string> {
-    console.warn(
-      'rotateImage está DEPRECADO para uso interativo.\n' +
-      'Use apenas rotationMetadata + CSS transform.\n' +
-      'rotatePhysically deve ser usado SÓ ao gerar PDF.'
-    );
-    return this.rotatePhysically(imageDataUrl, rotation, 0.90);
-  },
-
-  /**
-   * Valida se um arquivo é uma imagem válida
-   * Verifica tipo MIME e magic numbers (primeiros bytes)
-   * Suporta: JPEG, PNG, WebP, HEIC/HEIF
-   *
-   * @param file - Arquivo a validar
-   * @returns true se é imagem válida
-   */
-  async validateImageFile(file: File): Promise<boolean> {
-    // Verifica extensão/tipo MIME (incluindo HEIC/HEIF)
-    const validTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/webp',
-      'image/heic',
-      'image/heif',
-      'image/heic-sequence',
-      'image/heif-sequence',
-    ];
-
-    // HEIC pode vir sem MIME type correto, então verifica extensão também
-    const fileName = file.name.toLowerCase();
-    const isHeicByExtension = fileName.endsWith('.heic') || fileName.endsWith('.heif');
-
-    if (!validTypes.includes(file.type) && !isHeicByExtension) {
-      throw new Error('Tipo de arquivo não suportado. Use JPEG, PNG, WebP ou HEIC.');
-    }
-
-    // Verifica tamanho (máx 10 MB)
-    const MAX_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      throw new Error('Arquivo muito grande. Tamanho máximo: 10 MB');
-    }
-
-    // Valida magic numbers (primeiros bytes do arquivo)
-    try {
-      const buffer = await file.slice(0, 12).arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-
-      // JPEG: FF D8 FF
-      const isJPEG = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
-
-      // PNG: 89 50 4E 47
-      const isPNG =
-        bytes[0] === 0x89 &&
-        bytes[1] === 0x50 &&
-        bytes[2] === 0x4E &&
-        bytes[3] === 0x47;
-
-      // WebP: 52 49 46 46 ... 57 45 42 50
-      const isWebP =
-        bytes[0] === 0x52 &&
-        bytes[1] === 0x49 &&
-        bytes[2] === 0x46 &&
-        bytes[3] === 0x46 &&
-        bytes[8] === 0x57 &&
-        bytes[9] === 0x45 &&
-        bytes[10] === 0x42 &&
-        bytes[11] === 0x50;
-
-      // HEIC/HEIF: Verifica por 'ftyp' na posição 4-7 e 'heic'/'mif1' depois
-      const hasHEICSignature = isHeicByExtension || file.type.includes('heic') || file.type.includes('heif');
-
-      if (!isJPEG && !isPNG && !isWebP && !hasHEICSignature) {
-        throw new Error('Arquivo corrompido ou não é uma imagem válida');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Erro ao validar imagem:', error);
-      return false;
-    }
-  },
 };

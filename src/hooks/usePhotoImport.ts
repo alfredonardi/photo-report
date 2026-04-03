@@ -71,8 +71,7 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
       try {
         // Converte HEIC para JPEG
         fileToRead = await imageUtils.convertHeicToJpeg(file);
-      } catch (error) {
-        console.error('Erro ao converter HEIC:', error);
+      } catch {
         throw new Error(`Falha ao converter ${file.name} (HEIC). Navegador pode não suportar este formato.`);
       }
     }
@@ -142,12 +141,8 @@ export const usePhotoImport = (onPhotoAdd: (photoData: string) => Promise<void>)
         if (errors.length > 0) {
           const successCount = totalFiles - errors.length;
           showToast.warning(
-            `Importação concluída: ${successCount} foto(s) importada(s), ${errors.length} erro(s). Veja o console para detalhes.`
+            `Importação concluída: ${successCount} foto(s) importada(s), ${errors.length} erro(s).`
           );
-          console.warn('Erros na importação:');
-          errors.forEach((error, index) => {
-            console.error(`  ${index + 1}. ${error}`);
-          });
         } else {
           showToast.success(`${totalFiles} foto(s) importada(s) com sucesso!`);
         }
