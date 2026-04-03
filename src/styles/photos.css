@@ -1,16 +1,16 @@
 @layer components {
   .photo-list {
-    @apply grid gap-4 xl:grid-cols-2 xl:gap-5;
+    @apply grid gap-4 xl:grid-cols-2;
   }
 
   .photo-item-container {
-    @apply rounded-[24px] p-4 sm:rounded-[28px] sm:p-5;
+    @apply rounded-[24px] p-4 sm:rounded-[28px] sm:p-5 xl:p-4 2xl:p-5;
     border: 1px solid rgba(226, 232, 240, 0.72);
     background: rgba(248, 250, 252, 0.8);
   }
 
   .photo-image-container {
-    @apply mt-4 rounded-[20px] p-3 sm:mt-5 sm:rounded-[24px] sm:p-4;
+    @apply rounded-[20px] p-3 sm:rounded-[24px] sm:p-4 xl:p-3.5;
     border: 1px solid rgba(226, 232, 240, 0.72);
   }
 
@@ -19,6 +19,6 @@
   }
 
   .photo-description {
-    @apply min-h-[104px] w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-800 placeholder:text-slate-400 sm:min-h-[118px] sm:rounded-[20px];
+    @apply min-h-[104px] w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-800 placeholder:text-slate-400 sm:min-h-[118px] sm:rounded-[20px] xl:min-h-[108px] xl:py-2.5;
   }
 }

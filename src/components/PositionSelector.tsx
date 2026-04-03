@@ -22,7 +22,7 @@ export const PositionSelector: React.FC<PositionSelectorProps> = ({
   }
 
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
         Posição
       </span>

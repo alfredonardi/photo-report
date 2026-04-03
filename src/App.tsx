@@ -354,7 +354,7 @@ function App() {
         {user && <AuthHeader user={user} onLogout={handleLogout} />}
 
         <main className="mx-auto mt-3 max-w-7xl">
-          <section className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.045)] backdrop-blur sm:p-5 xl:p-6">
+          <section className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.045)] backdrop-blur sm:p-5 xl:p-5 2xl:p-6">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border border-slate-200/80 bg-white sm:h-14 sm:w-14 sm:rounded-[22px]">
                 <img src={logo} alt="Logo" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
@@ -418,18 +418,18 @@ function App() {
           </section>
 
           <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-6">
+            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-5 xl:p-5 2xl:p-6">
               <div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">
                     Dados do relatório
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Informações principais</h2>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl xl:text-[1.35rem] 2xl:text-2xl">Informações principais</h2>
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-3 md:gap-4">
-                <div>
+              <div className="mt-5 grid gap-3 md:grid-cols-2 md:gap-4 xl:gap-3.5 2xl:grid-cols-3">
+                <div className="min-w-0">
                   <label className="mb-2 block text-sm font-medium text-slate-700">Boletim de ocorrência</label>
                   <BOInput
                     id="bo-number"
@@ -440,7 +440,7 @@ function App() {
                   />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <label htmlFor="version" className="mb-2 block text-sm font-medium text-slate-700">
                     Versão do relatório
                   </label>
@@ -461,7 +461,7 @@ function App() {
                   </select>
                 </div>
 
-                <div>
+                <div className="min-w-0 md:col-span-2 2xl:col-span-1">
                   <label htmlFor="group" className="mb-2 block text-sm font-medium text-slate-700">
                     Grupo responsável
                   </label>
@@ -490,13 +490,13 @@ function App() {
               )}
             </div>
 
-            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-6">
+            <div className="rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:p-5 xl:p-5 2xl:p-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">Importação</p>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Importar fotos</h2>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl xl:text-[1.35rem] 2xl:text-2xl">Importar fotos</h2>
                 </div>
-                <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-600 sm:px-4 sm:py-2 sm:text-sm">
+                <div className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-600 sm:px-4 sm:py-2 sm:text-sm xl:px-3.5 xl:py-1.5 xl:text-xs">
                   {isImporting && progress ? `${progress.current}/${progress.total} em andamento` : importStatusText}
                 </div>
               </div>
@@ -532,7 +532,7 @@ function App() {
                   setIsDragActive(false);
                 }}
                 onDrop={(event) => void handleDrop(event)}
-                className={`mt-4 rounded-[24px] border-2 border-dashed px-5 py-8 transition sm:mt-6 sm:rounded-[28px] sm:px-6 sm:py-10 ${isDragActive
+                className={`mt-4 rounded-[24px] border-2 border-dashed px-5 py-8 transition sm:mt-6 sm:rounded-[28px] sm:px-6 sm:py-10 xl:px-5 xl:py-7 ${isDragActive
                   ? 'border-blue-400 bg-blue-50'
                   : 'border-slate-300/90 bg-slate-50/70 hover:border-slate-400 hover:bg-slate-50'} ${isImporting || isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
               >
@@ -555,18 +555,18 @@ function App() {
 
           <section
             ref={photosSectionRef}
-            className="mt-4 rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:mt-6 sm:p-6"
+            className="mt-4 rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.04)] backdrop-blur sm:mt-6 sm:p-5 xl:p-5 2xl:p-6"
           >
             <div className="mb-4 flex flex-col gap-3 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">Fotos</p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">Organizar imagens</h2>
+                <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl xl:text-[1.35rem] 2xl:text-2xl">Organizar imagens</h2>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2">
+              <div className="flex flex-wrap gap-2 text-xs sm:text-sm xl:text-xs">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2 xl:px-3.5 xl:py-1.5">
                   {photos.length} foto{photos.length > 1 ? 's' : ''}
                 </span>
-                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2">
+                <span className="rounded-full border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-slate-600 sm:px-4 sm:py-2 xl:px-3.5 xl:py-1.5">
                   {describedPhotos} com descrição
                 </span>
               </div>
